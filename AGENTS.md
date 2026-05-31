@@ -15,6 +15,7 @@ Prefer straightforward Rails conventions over custom architecture. Keep the prod
 - The frontend is a Vite-powered React app written in TypeScript.
 - Use Material UI for frontend components, layout primitives, icons, and theming before adding custom UI patterns.
 - Keep React components practical and small. Avoid introducing global client-side state or routing until the product needs it.
+- Decompose frontend UI into focused React components. Keep page-level components responsible for data loading and orchestration, and move reusable layout, status, and domain display pieces into named components.
 - Preserve Rails defaults where they fit the application.
 - Avoid broad refactors while implementing small product features.
 
