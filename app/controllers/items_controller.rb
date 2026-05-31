@@ -2,12 +2,13 @@ class ItemsController < ApplicationController
   def index
     items = Item.order(:name, :id)
     latest_snapshots_by_item_id = latest_snapshots_by_item_id(items)
-
-    render json: items.map { |item|
+    presented_items = items.map do |item|
       InventoryItemPresenter
         .new(item, latest_snapshot: latest_snapshots_by_item_id[item.id])
         .as_json
-    }
+    end
+
+    render json: presented_items
   end
 
   def show

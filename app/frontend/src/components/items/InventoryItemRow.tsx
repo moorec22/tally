@@ -1,7 +1,6 @@
 import ChevronRightIcon from "@mui/icons-material/ChevronRight"
 import Box from "@mui/material/Box"
 import Link from "@mui/material/Link"
-import Stack from "@mui/material/Stack"
 import Typography from "@mui/material/Typography"
 
 import type { InventoryItem } from "../../types/inventory"
@@ -48,30 +47,22 @@ export default function InventoryItemRow({ item }: { item: InventoryItem }) {
           },
         }}
       >
-        <Stack spacing={0.5} sx={{ minWidth: 0 }}>
-          <Typography
-            component="span"
-            sx={{ fontWeight: 700, overflowWrap: "anywhere" }}
-          >
-            {itemName}
-          </Typography>
-          <Typography
-            color="text.secondary"
-            component="span"
-            sx={{ display: { sm: "none" }, overflowWrap: "anywhere" }}
-            variant="body2"
-          >
-            {category}
-          </Typography>
-        </Stack>
+        <Typography
+          component="span"
+          sx={{ fontWeight: 700, minWidth: 0, overflowWrap: "anywhere" }}
+        >
+          {itemName}
+        </Typography>
 
         <Typography
           color="text.secondary"
           component="span"
           sx={{
-            display: { xs: "none", sm: "block" },
+            gridColumn: { xs: "1 / -1", sm: "auto" },
+            gridRow: { xs: 2, sm: "auto" },
             overflowWrap: "anywhere",
           }}
+          variant="body2"
         >
           {category}
         </Typography>
