@@ -28,5 +28,9 @@
     "vite-plugin-ruby": "^5.2.0",
     "vitest": "2.1.9"
   },
+  "resolutions": {
+    "esbuild": "0.25.12",
+    "vite": "6.4.2"
+  },
   "packageManager": "yarn@1.22.22"
 }
