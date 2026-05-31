@@ -4,13 +4,15 @@
 
 Tally is a simple Rails web application for inventory management. The app should help users track items, quantities, and changes to stock in a clear, low-friction workflow.
 
-Prefer straightforward Rails conventions over custom architecture. Keep the product practical and easy to maintain: simple models, readable controllers, conventional views, and focused tests.
+Prefer straightforward Rails conventions over custom architecture. Keep the product practical and easy to maintain: simple models, readable controllers, focused React components, and focused tests.
 
 ## Development Guidelines
 
 - Use RSpec for tests. Do not add new Minitest files.
 - Keep inventory workflows explicit and understandable.
-- Favor server-rendered Rails patterns unless the feature clearly needs richer client-side behavior.
+- Rails serves the backend and root page; the frontend is a Vite-powered React app written in TypeScript.
+- Use Material UI for frontend components, layout primitives, icons, and theming before adding custom UI patterns.
+- Keep React components practical and small. Avoid introducing global client-side state or routing until the product needs it.
 - Preserve Rails defaults where they fit the application.
 - Avoid broad refactors while implementing small product features.
 
@@ -26,8 +28,20 @@ The application is intended to be a small inventory tool, not a complex ERP syst
 
 ## Verification
 
-When changing behavior, add or update focused RSpec coverage and run:
+When changing Rails behavior, add or update focused RSpec coverage and run:
 
 ```sh
 bundle exec rspec
+```
+
+When changing frontend TypeScript, React, Vite, or Material UI code, also run:
+
+```sh
+yarn typecheck
+```
+
+When changing frontend build configuration or asset integration, verify the production asset build:
+
+```sh
+RAILS_ENV=production SECRET_KEY_BASE_DUMMY=1 bin/rails assets:precompile
 ```
