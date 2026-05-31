@@ -9,3 +9,11 @@ export type InventoryItem = {
   value: number | null
   last_updated_at: string | null
 }
+
+export type InventoryItemUpdate = {
+  category: string | null
+  unit: string | null
+  source: string | null
+  low: number | null
+  high: number | null
+}

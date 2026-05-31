@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react"
+import { fireEvent, screen, waitFor } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import ItemDetailPage from "../../../app/frontend/src/pages/ItemDetailPage"
@@ -43,6 +43,76 @@ describe("ItemDetailPage", () => {
         headers: { Accept: "application/json" },
       }),
     )
+  })
+
+  it("patches item edits and refreshes the loaded item", async () => {
+    const updatedItem: InventoryItem = {
+      ...item,
+      category: "Warehouse",
+      unit: "boxes",
+      source: "Aisle 4",
+      low: 3,
+      high: 25,
+    }
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => item,
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => updatedItem,
+      })
+    vi.stubGlobal("fetch", fetchMock)
+
+    renderWithTheme(<ItemDetailPage itemId="42" />)
+
+    await screen.findByRole("heading", { name: "Printer Paper" })
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }))
+    fireEvent.change(screen.getByLabelText("Unit"), {
+      target: { value: "boxes" },
+    })
+    fireEvent.change(screen.getByLabelText("Low"), {
+      target: { value: "3" },
+    })
+    fireEvent.change(screen.getByLabelText("High"), {
+      target: { value: "25" },
+    })
+    fireEvent.change(screen.getByLabelText("Category"), {
+      target: { value: "Warehouse" },
+    })
+    fireEvent.change(screen.getByLabelText("Source"), {
+      target: { value: "Aisle 4" },
+    })
+    fireEvent.click(screen.getByRole("button", { name: "Save" }))
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenLastCalledWith(
+        "/api/v1/items/42",
+        expect.objectContaining({
+          method: "PATCH",
+          headers: expect.objectContaining({
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          }),
+          body: JSON.stringify({
+            item: {
+              category: "Warehouse",
+              unit: "boxes",
+              source: "Aisle 4",
+              low: 3,
+              high: 25,
+            },
+          }),
+        }),
+      )
+    })
+    expect(await screen.findByText("Warehouse")).toBeInTheDocument()
+    expect(screen.getByText("Aisle 4")).toBeInTheDocument()
+    expect(screen.getByText("20 boxes")).toBeInTheDocument()
   })
 
   it("shows a not found state when the API returns 404", async () => {

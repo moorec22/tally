@@ -47,4 +47,102 @@ RSpec.describe "Items", type: :request do
       expect(response).to have_http_status(:not_found)
     end
   end
+
+  describe "PATCH /api/v1/items/:id" do
+    it "updates editable item fields and returns the presented item" do
+      item = Item.create!(
+        name: "Printer Paper",
+        category: "Office",
+        unit: "reams",
+        source: "Supply Closet",
+        low: 5,
+        high: 30
+      )
+      latest_snapshot = InventorySnapshot.create!(item:, value: 20)
+
+      patch item_path(item), params: {
+        item: {
+          category: "Warehouse",
+          unit: "boxes",
+          source: "Aisle 4",
+          low: 2,
+          high: 40
+        }
+      }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to eq(
+        "id" => item.id,
+        "name" => "Printer Paper",
+        "category" => "Warehouse",
+        "unit" => "boxes",
+        "source" => "Aisle 4",
+        "low" => 2,
+        "high" => 40,
+        "value" => latest_snapshot.value,
+        "last_updated_at" => latest_snapshot.updated_at.iso8601
+      )
+      expect(item.reload).to have_attributes(
+        category: "Warehouse",
+        unit: "boxes",
+        source: "Aisle 4",
+        low: 2,
+        high: 40
+      )
+    end
+
+    it "does not update unpermitted fields" do
+      item = Item.create!(name: "Printer Paper", unit: "reams")
+
+      patch item_path(item), params: {
+        item: {
+          name: "Copy Paper",
+          unit: "boxes"
+        }
+      }
+
+      expect(response).to have_http_status(:ok)
+      expect(item.reload).to have_attributes(
+        name: "Printer Paper",
+        unit: "boxes"
+      )
+    end
+
+    it "allows nullable threshold values" do
+      item = Item.create!(name: "Printer Paper", low: 5, high: 30)
+
+      patch item_path(item), params: {
+        item: {
+          low: nil,
+          high: nil
+        }
+      }
+
+      expect(response).to have_http_status(:ok)
+      expect(item.reload).to have_attributes(low: nil, high: nil)
+      expect(response.parsed_body["low"]).to be_nil
+      expect(response.parsed_body["high"]).to be_nil
+    end
+
+    it "returns validation errors for non-integer thresholds" do
+      item = Item.create!(name: "Printer Paper", low: 5, high: 30)
+
+      patch item_path(item), params: {
+        item: {
+          low: "low",
+          high: "30.5"
+        }
+      }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body["errors"]).to include("low", "high")
+      expect(item.reload).to have_attributes(low: 5, high: 30)
+    end
+
+    it "returns not found for a missing item" do
+      patch item_path(id: 123_456), params: { item: { unit: "boxes" } }
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
 end
