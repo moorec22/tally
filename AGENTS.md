@@ -16,6 +16,18 @@ Prefer straightforward Rails conventions over custom architecture. Keep the prod
 - Preserve Rails defaults where they fit the application.
 - Avoid broad refactors while implementing small product features.
 
+## Presenter Model Protocol
+
+Use the presenter pattern for all data that a controller returns. Presenters can translate multiple models into the frontend. Use the following guidelines:
+
+- Store presenters in `app/presenters` and name them after the model or screen they present, such as `InventoryItemPresenter`.
+- Keep presenters as plain Ruby objects initialized with the record or records they present.
+- Instantiate presenters explicitly in controllers when a view depends on them, using clear instance variable names like `@inventory_item_presenter`.
+- Put formatting, labels, badges, derived display text, and other view-specific presentation decisions in presenters when the logic is more than a tiny one-off helper.
+- Keep simple Rails helpers for small, broadly reusable formatting methods.
+- Avoid querying the database from presenter methods. Load needed associations in the controller or calling scope.
+- Add focused RSpec coverage in `spec/presenters` for presenter behavior that contains conditionals, formatting rules, or display policy.
+
 ## Product Direction
 
 The application is intended to be a small inventory tool, not a complex ERP system. Build toward core inventory tasks first:
