@@ -112,5 +112,14 @@ jobs:
         with:
           bundler-cache: true
 
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Install JavaScript dependencies
+        run: corepack enable && yarn install --frozen-lockfile
+
       - name: Run tests
         run: bin/rails db:test:prepare && bundle exec rspec
