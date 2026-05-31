@@ -1,24 +1,30 @@
-# README
+# Tally
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Tally is a Rails inventory application.
 
-Things you may want to cover:
+## Development
 
-* Ruby version
+The app uses PostgreSQL. By default, Rails connects to local databases named
+`tally_development` and `tally_test` using your local Postgres user.
 
-* System dependencies
+Optional environment variables:
 
-* Configuration
+- `POSTGRES_HOST`
+- `POSTGRES_PORT`
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+- `POSTGRES_DB`
+- `POSTGRES_TEST_DB`
 
-* Database creation
+Set up the app:
 
-* Database initialization
+```sh
+bundle install
+bin/rails db:prepare
+```
 
-* How to run the test suite
+Run the test suite:
 
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+```sh
+bundle exec rspec
+```
