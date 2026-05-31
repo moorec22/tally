@@ -15,5 +15,12 @@
     "target": "ES2022",
     "types": ["vite/client"]
   },
-  "include": ["app/frontend/**/*.ts", "app/frontend/**/*.tsx", "vite.config.ts"]
+  "include": [
+    "app/frontend/**/*.ts",
+    "app/frontend/**/*.tsx",
+    "tests/frontend/**/*.ts",
+    "tests/frontend/**/*.tsx",
+    "vite.config.ts",
+    "vitest.config.ts"
+  ]
 }

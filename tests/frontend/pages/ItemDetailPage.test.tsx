@@ -1,9 +1,9 @@
 import { screen, waitFor } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { renderWithTheme } from "../test/renderWithTheme"
-import type { InventoryItem } from "../types/inventory"
-import ItemDetailPage from "./ItemDetailPage"
+import ItemDetailPage from "../../../app/frontend/src/pages/ItemDetailPage"
+import type { InventoryItem } from "../../../app/frontend/src/types/inventory"
+import { renderWithTheme } from "../support/renderWithTheme"
 
 const item: InventoryItem = {
   id: 42,

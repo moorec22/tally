@@ -2,8 +2,8 @@ import ErrorOutlineOutlinedIcon from "@mui/icons-material/ErrorOutlineOutlined"
 import { screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
-import { renderWithTheme } from "../test/renderWithTheme"
-import StatusPanel from "./StatusPanel"
+import StatusPanel from "../../../app/frontend/src/components/StatusPanel"
+import { renderWithTheme } from "../support/renderWithTheme"
 
 describe("StatusPanel", () => {
   it("renders the status message and inventory navigation", () => {

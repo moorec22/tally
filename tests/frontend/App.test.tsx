@@ -1,18 +1,18 @@
 import { screen } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
-import App from "./App"
-import { renderWithTheme } from "./test/renderWithTheme"
+import App from "../../app/frontend/src/App"
+import { renderWithTheme } from "./support/renderWithTheme"
 
-vi.mock("./pages/HomePage", () => ({
+vi.mock("../../app/frontend/src/pages/HomePage", () => ({
   default: () => <div>Home page</div>,
 }))
 
-vi.mock("./pages/ItemDetailPage", () => ({
+vi.mock("../../app/frontend/src/pages/ItemDetailPage", () => ({
   default: ({ itemId }: { itemId: string }) => <div>Item page {itemId}</div>,
 }))
 
-vi.mock("./pages/NotFoundPage", () => ({
+vi.mock("../../app/frontend/src/pages/NotFoundPage", () => ({
   default: () => <div>Not found page</div>,
 }))
 

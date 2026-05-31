@@ -1,9 +1,9 @@
 import { screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
-import { renderWithTheme } from "../../test/renderWithTheme"
-import type { InventoryItem } from "../../types/inventory"
-import ItemDetails from "./ItemDetails"
+import ItemDetails from "../../../../app/frontend/src/components/items/ItemDetails"
+import type { InventoryItem } from "../../../../app/frontend/src/types/inventory"
+import { renderWithTheme } from "../../support/renderWithTheme"
 
 const countedItem: InventoryItem = {
   id: 1,
