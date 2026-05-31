@@ -1,6 +1,6 @@
 # Tally
 
-Tally is a Rails inventory application.
+Tally is a simple web application to manage inventory.
 
 ## Development
 
