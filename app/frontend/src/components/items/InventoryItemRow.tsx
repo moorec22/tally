@@ -30,9 +30,9 @@ export default function InventoryItemRow({ item }: { item: InventoryItem }) {
           gap: 2,
           gridTemplateColumns: {
             xs: "1fr auto",
-            sm: "minmax(0, 1fr) 160px 140px auto",
+            sm: "minmax(0, 1fr) 160px 140px 24px",
           },
-          px: { xs: 2.5, sm: 3 },
+          px: 3,
           py: 2,
           transition: "background-color 120ms ease",
           "&:hover": {
@@ -48,7 +48,12 @@ export default function InventoryItemRow({ item }: { item: InventoryItem }) {
       >
         <Typography
           component="span"
-          sx={{ fontWeight: 700, minWidth: 0, overflowWrap: "anywhere" }}
+          sx={{
+            fontWeight: 700,
+            gridColumn: { sm: 1 },
+            minWidth: 0,
+            overflowWrap: "anywhere",
+          }}
         >
           {itemName}
         </Typography>
@@ -59,9 +64,9 @@ export default function InventoryItemRow({ item }: { item: InventoryItem }) {
           sx={{
             gridColumn: { xs: "1 / -1", sm: "auto" },
             gridRow: { xs: 2, sm: "auto" },
+            minWidth: 0,
             overflowWrap: "anywhere",
           }}
-          variant="body2"
         >
           {category}
         </Typography>
@@ -70,7 +75,8 @@ export default function InventoryItemRow({ item }: { item: InventoryItem }) {
           component="span"
           sx={{
             fontWeight: 700,
-            justifySelf: { xs: "end", sm: "start" },
+            gridColumn: { sm: 3 },
+            justifySelf: "start",
             whiteSpace: "nowrap",
           }}
         >
