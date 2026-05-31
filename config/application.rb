@@ -23,6 +23,9 @@ module Tally
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+    config.autoload_paths << Rails.root.join("app/presenters")
+    config.eager_load_paths << Rails.root.join("app/presenters")
+
     config.generators do |generators|
       generators.test_framework :rspec
     end

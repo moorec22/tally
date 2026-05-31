@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react"
+import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined"
 import ArrowBackIcon from "@mui/icons-material/ArrowBack"
 import ErrorOutlineOutlinedIcon from "@mui/icons-material/ErrorOutlineOutlined"
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined"
@@ -26,6 +27,7 @@ type InventoryItem = {
   low: number | null
   high: number | null
   value: number | null
+  last_updated_at: string | null
 }
 
 type ItemLoadState =
@@ -179,7 +181,7 @@ function ItemLoadingState() {
 function ItemDetails({ item }: { item: InventoryItem }) {
   const itemName = presentText(item.name)
   const currentQuantity =
-    item.value === null ? "Not counted" : `${item.value}${unitSuffix(item.unit)}`
+    item.value === null ? "--" : `${item.value}${unitSuffix(item.unit)}`
 
   return (
     <Paper
@@ -250,7 +252,7 @@ function ItemDetails({ item }: { item: InventoryItem }) {
             sx={{
               display: "grid",
               gap: 2,
-              gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
+              gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
             }}
           >
             <ItemAttribute
@@ -267,6 +269,11 @@ function ItemDetails({ item }: { item: InventoryItem }) {
               icon={<NumbersOutlinedIcon color="primary" />}
               label="High"
               value={presentNumber(item.high)}
+            />
+            <ItemAttribute
+              icon={<AccessTimeOutlinedIcon color="primary" />}
+              label="Last updated"
+              value={presentTimestamp(item.last_updated_at)}
             />
           </Box>
         </Stack>
@@ -393,4 +400,21 @@ function presentNumber(value: number | null) {
 
 function unitSuffix(unit: string | null) {
   return unit?.trim() ? ` ${unit}` : ""
+}
+
+function presentTimestamp(value: string | null) {
+  if (!value) {
+    return "Not counted"
+  }
+
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) {
+    return "Not set"
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date)
 }
