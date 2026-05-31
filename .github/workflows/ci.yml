@@ -36,8 +36,17 @@ jobs:
         with:
           bundler-cache: true
 
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Install JavaScript dependencies
+        run: corepack enable && yarn install --frozen-lockfile
+
       - name: Scan for security vulnerabilities in JavaScript dependencies
-        run: bin/importmap audit
+        run: yarn audit
 
   lint:
     runs-on: ubuntu-latest
