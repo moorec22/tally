@@ -21,7 +21,7 @@ RSpec.describe "Items", type: :request do
             "name" => "Markers",
             "category" => "Office",
             "unit" => "boxes",
-            "source" => nil,
+            "preferred_source" => nil,
             "low" => nil,
             "high" => nil,
             "value" => nil,
@@ -32,7 +32,7 @@ RSpec.describe "Items", type: :request do
             "name" => "Printer Paper",
             "category" => "Office",
             "unit" => "reams",
-            "source" => nil,
+            "preferred_source" => nil,
             "low" => nil,
             "high" => nil,
             "value" => latest_snapshot.value,
@@ -43,7 +43,7 @@ RSpec.describe "Items", type: :request do
             "name" => "Tape",
             "category" => "Packing",
             "unit" => "rolls",
-            "source" => nil,
+            "preferred_source" => nil,
             "low" => nil,
             "high" => nil,
             "value" => tape_snapshot.value,
@@ -60,7 +60,7 @@ RSpec.describe "Items", type: :request do
         name: "Printer Paper",
         category: "Office",
         unit: "reams",
-        source: "Supply Closet",
+        preferred_source: "Supply Closet",
         low: 5,
         high: 30
       )
@@ -76,7 +76,7 @@ RSpec.describe "Items", type: :request do
         "name" => "Printer Paper",
         "category" => "Office",
         "unit" => "reams",
-        "source" => "Supply Closet",
+        "preferred_source" => "Supply Closet",
         "low" => 5,
         "high" => 30,
         "value" => latest_snapshot.value,
@@ -107,7 +107,7 @@ RSpec.describe "Items", type: :request do
         name: "Printer Paper",
         category: "Office",
         unit: "reams",
-        source: "Supply Closet",
+        preferred_source: "Supply Closet",
         low: 5,
         high: 30
       )
@@ -117,7 +117,7 @@ RSpec.describe "Items", type: :request do
         item: {
           category: "Warehouse",
           unit: "boxes",
-          source: "Aisle 4",
+          preferred_source: "Aisle 4",
           low: 2,
           high: 40
         }
@@ -129,7 +129,7 @@ RSpec.describe "Items", type: :request do
         "name" => "Printer Paper",
         "category" => "Warehouse",
         "unit" => "boxes",
-        "source" => "Aisle 4",
+        "preferred_source" => "Aisle 4",
         "low" => 2,
         "high" => 40,
         "value" => latest_snapshot.value,
@@ -138,7 +138,7 @@ RSpec.describe "Items", type: :request do
       expect(item.reload).to have_attributes(
         category: "Warehouse",
         unit: "boxes",
-        source: "Aisle 4",
+        preferred_source: "Aisle 4",
         low: 2,
         high: 40
       )

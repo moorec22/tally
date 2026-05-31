@@ -37,7 +37,7 @@ type ItemDetailsProps = {
 type ItemFormValues = {
   category: string
   unit: string
-  source: string
+  preferredSource: string
   low: string
   high: string
 }
@@ -46,7 +46,7 @@ function formValuesFromItem(item: InventoryItem): ItemFormValues {
   return {
     category: item.category ?? "",
     unit: item.unit ?? "",
-    source: item.source ?? "",
+    preferredSource: item.preferred_source ?? "",
     low: item.low?.toString() ?? "",
     high: item.high?.toString() ?? "",
   }
@@ -116,7 +116,7 @@ export default function ItemDetails({ item, onSave }: ItemDetailsProps) {
       await onSave({
         category: textOrNull(formValues.category),
         unit: textOrNull(formValues.unit),
-        source: textOrNull(formValues.source),
+        preferred_source: textOrNull(formValues.preferredSource),
         low: integerOrNull(formValues.low),
         high: integerOrNull(formValues.high),
       })
@@ -213,9 +213,11 @@ export default function ItemDetails({ item, onSave }: ItemDetailsProps) {
                 />
                 <TextField
                   fullWidth
-                  label="Source"
-                  onChange={(event) => updateField("source", event.target.value)}
-                  value={formValues.source}
+                  label="Preferred source"
+                  onChange={(event) =>
+                    updateField("preferredSource", event.target.value)
+                  }
+                  value={formValues.preferredSource}
                 />
               </Box>
             ) : (
@@ -231,7 +233,7 @@ export default function ItemDetails({ item, onSave }: ItemDetailsProps) {
                 />
                 <Chip
                   icon={<PlaceOutlinedIcon />}
-                  label={presentText(item.source)}
+                  label={presentText(item.preferred_source)}
                   variant="outlined"
                 />
               </Stack>
