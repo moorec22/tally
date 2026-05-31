@@ -1,4 +1,15 @@
 class ItemsController < ApplicationController
+  def index
+    items = Item.order(:name, :id)
+    latest_snapshots_by_item_id = latest_snapshots_by_item_id(items)
+
+    render json: items.map { |item|
+      InventoryItemPresenter
+        .new(item, latest_snapshot: latest_snapshots_by_item_id[item.id])
+        .as_json
+    }
+  end
+
   def show
     item = Item.find(params[:id])
     render json: presented_item(item)
@@ -21,6 +32,14 @@ class ItemsController < ApplicationController
     @inventory_item_presenter = InventoryItemPresenter.new(item, latest_snapshot:)
 
     @inventory_item_presenter.as_json
+  end
+
+  def latest_snapshots_by_item_id(items)
+    InventorySnapshot
+      .where(item: items)
+      .select("DISTINCT ON (item_id) inventory_snapshots.*")
+      .order(:item_id, created_at: :desc, id: :desc)
+      .index_by(&:item_id)
   end
 
   def item_params

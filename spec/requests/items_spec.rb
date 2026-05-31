@@ -1,6 +1,59 @@
 require "rails_helper"
 
 RSpec.describe "Items", type: :request do
+  describe "GET /api/v1/items" do
+    it "returns all items with their latest snapshot values ordered by name and id" do
+      markers = Item.create!(name: "Markers", category: "Office", unit: "boxes")
+      paper = Item.create!(name: "Printer Paper", category: "Office", unit: "reams")
+      tape = Item.create!(name: "Tape", category: "Packing", unit: "rolls")
+      InventorySnapshot.create!(item: paper, value: 12, created_at: 2.days.ago)
+      same_time_snapshot = InventorySnapshot.create!(item: paper, value: 18, created_at: 1.day.ago)
+      latest_snapshot = InventorySnapshot.create!(item: paper, value: 20, created_at: same_time_snapshot.created_at)
+      tape_snapshot = InventorySnapshot.create!(item: tape, value: 4)
+
+      get items_path
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to eq(
+        [
+          {
+            "id" => markers.id,
+            "name" => "Markers",
+            "category" => "Office",
+            "unit" => "boxes",
+            "source" => nil,
+            "low" => nil,
+            "high" => nil,
+            "value" => nil,
+            "last_updated_at" => nil
+          },
+          {
+            "id" => paper.id,
+            "name" => "Printer Paper",
+            "category" => "Office",
+            "unit" => "reams",
+            "source" => nil,
+            "low" => nil,
+            "high" => nil,
+            "value" => latest_snapshot.value,
+            "last_updated_at" => latest_snapshot.updated_at.iso8601
+          },
+          {
+            "id" => tape.id,
+            "name" => "Tape",
+            "category" => "Packing",
+            "unit" => "rolls",
+            "source" => nil,
+            "low" => nil,
+            "high" => nil,
+            "value" => tape_snapshot.value,
+            "last_updated_at" => tape_snapshot.updated_at.iso8601
+          }
+        ]
+      )
+    end
+  end
+
   describe "GET /api/v1/items/:id" do
     it "returns the presented item with the latest snapshot value" do
       item = Item.create!(

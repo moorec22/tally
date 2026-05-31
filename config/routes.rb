@@ -2,7 +2,7 @@ Rails.application.routes.draw do
   root "home#index"
 
   scope "/api/v1" do
-    resources :items, only: [ :show, :update ]
+    resources :items, only: [ :index, :show, :update ]
   end
 
   get "/items/:id", to: "home#index"
