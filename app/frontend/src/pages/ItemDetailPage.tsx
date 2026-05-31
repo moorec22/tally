@@ -6,13 +6,19 @@ import PageShell from "../components/PageShell"
 import StatusPanel from "../components/StatusPanel"
 import ItemDetails from "../components/items/ItemDetails"
 import ItemLoadingState from "../components/items/ItemLoadingState"
-import type { InventoryItem } from "../types/inventory"
+import type { InventoryItem, InventoryItemUpdate } from "../types/inventory"
 
 type ItemLoadState =
   | { status: "loading" }
   | { status: "loaded"; item: InventoryItem }
   | { status: "not_found" }
   | { status: "error" }
+
+function csrfToken() {
+  return document
+    .querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+    ?.getAttribute("content")
+}
 
 export default function ItemDetailPage({ itemId }: { itemId: string }) {
   const [loadState, setLoadState] = useState<ItemLoadState>({
@@ -55,11 +61,36 @@ export default function ItemDetailPage({ itemId }: { itemId: string }) {
     return () => controller.abort()
   }, [itemId])
 
+  async function saveItem(values: InventoryItemUpdate) {
+    const token = csrfToken()
+    const headers: Record<string, string> = {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    }
+
+    if (token) {
+      headers["X-CSRF-Token"] = token
+    }
+
+    const response = await fetch(`/api/v1/items/${itemId}`, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify({ item: values }),
+    })
+
+    if (!response.ok) {
+      throw new Error("Unable to save item")
+    }
+
+    const item = (await response.json()) as InventoryItem
+    setLoadState({ status: "loaded", item })
+  }
+
   return (
     <PageShell>
       {loadState.status === "loading" ? <ItemLoadingState /> : null}
       {loadState.status === "loaded" ? (
-        <ItemDetails item={loadState.item} />
+        <ItemDetails item={loadState.item} onSave={saveItem} />
       ) : null}
       {loadState.status === "not_found" ? (
         <StatusPanel
