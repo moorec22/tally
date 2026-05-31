@@ -11,6 +11,7 @@ Prefer straightforward Rails conventions over custom architecture. Keep the prod
 - Use RSpec for tests. Do not add new Minitest files.
 - Keep inventory workflows explicit and understandable.
 - Rails controllers always return JSON and never render HTML. The React frontend is responsible for all UI decisions and rendering.
+- Route JSON controllers under the `/api/v1/` path prefix.
 - The frontend is a Vite-powered React app written in TypeScript.
 - Use Material UI for frontend components, layout primitives, icons, and theming before adding custom UI patterns.
 - Keep React components practical and small. Avoid introducing global client-side state or routing until the product needs it.

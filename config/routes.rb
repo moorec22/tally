@@ -1,7 +1,9 @@
 Rails.application.routes.draw do
   root "home#index"
 
-  resources :items, only: [ :show ]
+  scope "/api/v1" do
+    resources :items, only: [ :show ]
+  end
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

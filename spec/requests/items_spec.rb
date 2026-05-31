@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Items", type: :request do
-  describe "GET /items/:id" do
+  describe "GET /api/v1/items/:id" do
     it "returns the presented item with the latest snapshot value" do
       item = Item.create!(
         name: "Printer Paper",
