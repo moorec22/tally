@@ -26,7 +26,8 @@ RSpec.describe "Items", type: :request do
         "source" => "Supply Closet",
         "low" => 5,
         "high" => 30,
-        "value" => latest_snapshot.value
+        "value" => latest_snapshot.value,
+        "last_updated_at" => latest_snapshot.updated_at.iso8601
       )
     end
 
@@ -37,6 +38,7 @@ RSpec.describe "Items", type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body["value"]).to be_nil
+      expect(response.parsed_body["last_updated_at"]).to be_nil
     end
 
     it "returns not found for a missing item" do

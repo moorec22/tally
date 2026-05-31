@@ -13,7 +13,8 @@ class InventoryItemPresenter
       source: item.source,
       low: item.low,
       high: item.high,
-      value: latest_snapshot&.value
+      value: latest_snapshot&.value,
+      last_updated_at: latest_snapshot&.updated_at&.iso8601
     }
   end
 
