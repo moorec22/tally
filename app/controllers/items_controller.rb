@@ -44,6 +44,6 @@ class ItemsController < ApplicationController
   end
 
   def item_params
-    params.require(:item).permit(:unit, :low, :high, :category, :source)
+    params.require(:item).permit(:unit, :low, :high, :category, :preferred_source)
   end
 end

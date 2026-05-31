@@ -3,7 +3,7 @@ export type InventoryItem = {
   name: string | null
   category: string | null
   unit: string | null
-  source: string | null
+  preferred_source: string | null
   low: number | null
   high: number | null
   value: number | null
@@ -13,7 +13,7 @@ export type InventoryItem = {
 export type InventoryItemUpdate = {
   category: string | null
   unit: string | null
-  source: string | null
+  preferred_source: string | null
   low: number | null
   high: number | null
 }

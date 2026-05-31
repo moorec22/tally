@@ -6,7 +6,7 @@ RSpec.describe InventoryItemPresenter do
       name: "Printer Paper",
       category: "Office",
       unit: "reams",
-      source: "Supply Closet",
+      preferred_source: "Supply Closet",
       low: 5,
       high: 30
     )
@@ -19,7 +19,7 @@ RSpec.describe InventoryItemPresenter do
       name: "Printer Paper",
       category: "Office",
       unit: "reams",
-      source: "Supply Closet",
+      preferred_source: "Supply Closet",
       low: 5,
       high: 30
     )

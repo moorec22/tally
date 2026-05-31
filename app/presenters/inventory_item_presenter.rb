@@ -10,7 +10,7 @@ class InventoryItemPresenter
       name: item.name,
       category: item.category,
       unit: item.unit,
-      source: item.source,
+      preferred_source: item.preferred_source,
       low: item.low,
       high: item.high,
       value: latest_snapshot&.value,

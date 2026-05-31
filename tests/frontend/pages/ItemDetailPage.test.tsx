@@ -10,7 +10,7 @@ const item: InventoryItem = {
   name: "Printer Paper",
   category: "Office",
   unit: "reams",
-  source: "Supply Closet",
+  preferred_source: "Supply Closet",
   low: 5,
   high: 30,
   value: 20,
@@ -50,7 +50,7 @@ describe("ItemDetailPage", () => {
       ...item,
       category: "Warehouse",
       unit: "boxes",
-      source: "Aisle 4",
+      preferred_source: "Aisle 4",
       low: 3,
       high: 25,
     }
@@ -84,7 +84,7 @@ describe("ItemDetailPage", () => {
     fireEvent.change(screen.getByLabelText("Category"), {
       target: { value: "Warehouse" },
     })
-    fireEvent.change(screen.getByLabelText("Source"), {
+    fireEvent.change(screen.getByLabelText("Preferred source"), {
       target: { value: "Aisle 4" },
     })
     fireEvent.click(screen.getByRole("button", { name: "Save" }))
@@ -102,7 +102,7 @@ describe("ItemDetailPage", () => {
             item: {
               category: "Warehouse",
               unit: "boxes",
-              source: "Aisle 4",
+              preferred_source: "Aisle 4",
               low: 3,
               high: 25,
             },
