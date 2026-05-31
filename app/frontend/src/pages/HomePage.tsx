@@ -110,6 +110,9 @@ export default function HomePage() {
             </SectionLabel>
 
             <Box>
+              <Typography component="h1" sx={{ fontWeight: 700 }} variant="h3">
+                Inventory items
+              </Typography>
               <Typography color="text.secondary" sx={{ mt: 1 }}>
                 Search and scan current stock levels.
               </Typography>
@@ -193,7 +196,7 @@ export default function HomePage() {
                   color: "text.secondary",
                   display: { xs: "none", sm: "grid" },
                   gap: 2,
-                  gridTemplateColumns: "minmax(0, 1fr) 160px 120px 120px auto",
+                  gridTemplateColumns: "minmax(0, 1fr) 160px 140px auto",
                   listStyle: "none",
                   px: 3,
                   py: 1.5,
@@ -207,9 +210,6 @@ export default function HomePage() {
                 </Typography>
                 <Typography component="span" variant="overline">
                   Quantity
-                </Typography>
-                <Typography component="span" variant="overline">
-                  Unit
                 </Typography>
                 <Box />
               </Box>

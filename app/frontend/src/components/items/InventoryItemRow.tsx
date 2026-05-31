@@ -9,7 +9,6 @@ import { presentText, unitSuffix } from "../../utils/inventoryPresentation"
 export default function InventoryItemRow({ item }: { item: InventoryItem }) {
   const itemName = presentText(item.name)
   const category = presentText(item.category)
-  const unit = presentText(item.unit)
   const quantity = item.value === null ? "--" : item.value.toString()
 
   return (
@@ -31,7 +30,7 @@ export default function InventoryItemRow({ item }: { item: InventoryItem }) {
           gap: 2,
           gridTemplateColumns: {
             xs: "1fr auto",
-            sm: "minmax(0, 1fr) 160px 120px 120px auto",
+            sm: "minmax(0, 1fr) 160px 140px auto",
           },
           px: { xs: 2.5, sm: 3 },
           py: 2,
@@ -77,17 +76,6 @@ export default function InventoryItemRow({ item }: { item: InventoryItem }) {
         >
           {quantity}
           {unitSuffix(item.unit)}
-        </Typography>
-
-        <Typography
-          color="text.secondary"
-          component="span"
-          sx={{
-            display: { xs: "none", sm: "block" },
-            overflowWrap: "anywhere",
-          }}
-        >
-          {unit}
         </Typography>
 
         <ChevronRightIcon
