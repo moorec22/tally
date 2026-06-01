@@ -6,6 +6,7 @@ import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined"
 import Box from "@mui/material/Box"
 import CircularProgress from "@mui/material/CircularProgress"
 import InputAdornment from "@mui/material/InputAdornment"
+import MenuItem from "@mui/material/MenuItem"
 import Paper from "@mui/material/Paper"
 import Stack from "@mui/material/Stack"
 import TextField from "@mui/material/TextField"
@@ -22,8 +23,20 @@ type ItemsLoadState =
   | { status: "loaded"; items: InventoryItem[] }
   | { status: "error" }
 
+const ALL_CATEGORIES = "__all_categories__"
+const NOT_SET_CATEGORY = "__not_set_category__"
+
+type CategoryFilterOption = {
+  label: string
+  value: string
+}
+
 function searchableText(item: InventoryItem) {
   return [item.name, item.category].join(" ").toLowerCase()
+}
+
+function normalizedCategory(item: InventoryItem) {
+  return item.category?.trim() ?? ""
 }
 
 export default function HomePage() {
@@ -31,6 +44,7 @@ export default function HomePage() {
     status: "loading",
   })
   const [searchQuery, setSearchQuery] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORIES)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -63,6 +77,37 @@ export default function HomePage() {
     return () => controller.abort()
   }, [])
 
+  const categoryFilterOptions = useMemo<CategoryFilterOption[]>(() => {
+    if (loadState.status !== "loaded") {
+      return [{ label: "All categories", value: ALL_CATEGORIES }]
+    }
+
+    const categories = new Set<string>()
+    let hasBlankCategory = false
+
+    loadState.items.forEach((item) => {
+      const category = normalizedCategory(item)
+
+      if (category) {
+        categories.add(category)
+      } else {
+        hasBlankCategory = true
+      }
+    })
+
+    const options = Array.from(categories)
+      .sort((firstCategory, secondCategory) =>
+        firstCategory.localeCompare(secondCategory),
+      )
+      .map((category) => ({ label: category, value: category }))
+
+    if (hasBlankCategory) {
+      options.push({ label: "Not set", value: NOT_SET_CATEGORY })
+    }
+
+    return [{ label: "All categories", value: ALL_CATEGORIES }, ...options]
+  }, [loadState])
+
   const filteredItems = useMemo(() => {
     if (loadState.status !== "loaded") {
       return []
@@ -70,14 +115,19 @@ export default function HomePage() {
 
     const normalizedQuery = searchQuery.trim().toLowerCase()
 
-    if (!normalizedQuery) {
-      return loadState.items
-    }
+    return loadState.items.filter((item) => {
+      const category = normalizedCategory(item)
+      const matchesSearch =
+        !normalizedQuery || searchableText(item).includes(normalizedQuery)
+      const matchesCategory =
+        selectedCategory === ALL_CATEGORIES ||
+        (selectedCategory === NOT_SET_CATEGORY
+          ? !category
+          : category === selectedCategory)
 
-    return loadState.items.filter((item) =>
-      searchableText(item).includes(normalizedQuery),
-    )
-  }, [loadState, searchQuery])
+      return matchesSearch && matchesCategory
+    })
+  }, [loadState, searchQuery, selectedCategory])
 
   if (loadState.status === "error") {
     return (
@@ -115,22 +165,42 @@ export default function HomePage() {
               </Typography>
             </Box>
 
-            <TextField
-              fullWidth
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search by name or category"
-              slotProps={{
-                htmlInput: { "aria-label": "Search inventory" },
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon color="action" />
-                    </InputAdornment>
-                  ),
-                },
-              }}
-              value={searchQuery}
-            />
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+              <TextField
+                fullWidth
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search by name or category"
+                slotProps={{
+                  htmlInput: { "aria-label": "Search inventory" },
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+                value={searchQuery}
+              />
+              <TextField
+                label="Category"
+                onChange={(event) => setSelectedCategory(event.target.value)}
+                select
+                slotProps={{
+                  select: {
+                    displayEmpty: true,
+                  },
+                }}
+                sx={{ minWidth: { sm: 220 } }}
+                value={selectedCategory}
+              >
+                {categoryFilterOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Stack>
           </Stack>
         </Paper>
 
@@ -180,7 +250,7 @@ export default function HomePage() {
                 No matching items
               </Typography>
               <Typography color="text.secondary" sx={{ textAlign: "center" }}>
-                Try a different name or category.
+                Try a different search or category.
               </Typography>
             </Stack>
           ) : null}

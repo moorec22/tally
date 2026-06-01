@@ -28,6 +28,17 @@ const items: InventoryItem[] = [
     value: 8,
     last_updated_at: null,
   },
+  {
+    id: 44,
+    name: "Mystery Bin",
+    category: null,
+    unit: null,
+    preferred_source: null,
+    low: null,
+    high: null,
+    value: null,
+    last_updated_at: null,
+  },
 ]
 
 describe("HomePage", () => {
@@ -46,9 +57,7 @@ describe("HomePage", () => {
     renderWithTheme(<HomePage />)
 
     expect(screen.getByText("Loading inventory...")).toBeInTheDocument()
-    expect(
-      await screen.findByRole("heading", { name: "Inventory items" }),
-    ).toBeInTheDocument()
+    await screen.findByRole("link", { name: /Printer Paper/i })
     expect(screen.getByRole("link", { name: /Printer Paper/i })).toHaveAttribute(
       "href",
       "/items/42",
@@ -56,7 +65,7 @@ describe("HomePage", () => {
     expect(screen.getByText("Last counted")).toBeInTheDocument()
     expect(screen.getByText("20 reams")).toBeInTheDocument()
     expect(screen.getByText("01/02/2026")).toBeInTheDocument()
-    expect(screen.getByText("Not counted")).toBeInTheDocument()
+    expect(screen.getAllByText("Not counted")).toHaveLength(2)
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/v1/items",
       expect.objectContaining({
@@ -92,6 +101,83 @@ describe("HomePage", () => {
 
     expect(screen.getByText("Printer Paper")).toBeInTheDocument()
     expect(screen.queryByText("Packing Tape")).not.toBeInTheDocument()
+  })
+
+  it("filters items by selected category", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => items,
+      }),
+    )
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: "Category" }))
+
+    expect(screen.getByRole("option", { name: "All categories" })).toBeInTheDocument()
+    expect(screen.getByRole("option", { name: "Office" })).toBeInTheDocument()
+    expect(screen.getByRole("option", { name: "Shipping" })).toBeInTheDocument()
+    expect(screen.getByRole("option", { name: "Not set" })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("option", { name: "Shipping" }))
+
+    expect(screen.queryByText("Printer Paper")).not.toBeInTheDocument()
+    expect(screen.getByText("Packing Tape")).toBeInTheDocument()
+    expect(screen.queryByText("Mystery Bin")).not.toBeInTheDocument()
+  })
+
+  it("combines search and category filters", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => items,
+      }),
+    )
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: "Category" }))
+    fireEvent.click(screen.getByRole("option", { name: "Shipping" }))
+    fireEvent.change(screen.getByLabelText("Search inventory"), {
+      target: { value: "printer" },
+    })
+
+    expect(
+      screen.getByRole("heading", { name: "No matching items" }),
+    ).toBeInTheDocument()
+    expect(screen.queryByText("Printer Paper")).not.toBeInTheDocument()
+    expect(screen.queryByText("Packing Tape")).not.toBeInTheDocument()
+  })
+
+  it("filters items with no category", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => items,
+      }),
+    )
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: "Category" }))
+    fireEvent.click(screen.getByRole("option", { name: "Not set" }))
+
+    expect(screen.queryByText("Printer Paper")).not.toBeInTheDocument()
+    expect(screen.queryByText("Packing Tape")).not.toBeInTheDocument()
+    expect(screen.getByText("Mystery Bin")).toBeInTheDocument()
   })
 
   it("shows a no-results state when search has no matches", async () => {
