@@ -8,6 +8,7 @@ Prefer straightforward Rails conventions over custom architecture. Keep the prod
 
 ## Development Guidelines
 
+- Use `mise` for project tooling so commands run with the versions defined in `mise.toml`.
 - Use RSpec for tests. Do not add new Minitest files.
 - Keep inventory workflows explicit and understandable.
 - Rails controllers always return JSON and never render HTML. The React frontend is responsible for all UI decisions and rendering.
@@ -46,17 +47,17 @@ The application is intended to be a small inventory tool, not a complex ERP syst
 When changing Rails behavior, add or update focused RSpec coverage and run:
 
 ```sh
-bundle exec rspec
+mise exec -- bundle exec rspec
 ```
 
 When changing frontend TypeScript, React, Vite, or Material UI code, also run:
 
 ```sh
-yarn typecheck
+mise exec -- yarn typecheck
 ```
 
 When changing frontend build configuration or asset integration, verify the production asset build:
 
 ```sh
-RAILS_ENV=production SECRET_KEY_BASE_DUMMY=1 bin/rails assets:precompile
+RAILS_ENV=production SECRET_KEY_BASE_DUMMY=1 mise exec -- bin/rails assets:precompile
 ```
