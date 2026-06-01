@@ -92,6 +92,11 @@ function persistInventoryDraft(isActive: boolean, entries: InventoryDraft) {
   }
 
   try {
+    if (!isActive && Object.keys(entries).length === 0) {
+      window.localStorage.removeItem(INVENTORY_DRAFT_STORAGE_KEY)
+      return
+    }
+
     window.localStorage.setItem(
       INVENTORY_DRAFT_STORAGE_KEY,
       JSON.stringify({ isActive, entries }),
@@ -279,6 +284,10 @@ export default function HomePage() {
     setSubmitError(null)
   }
 
+  function cancelInventorySession() {
+    clearInventoryDraft()
+  }
+
   async function confirmInventory() {
     if (hasInvalidDraftCounts) {
       setSubmitError("Use whole numbers 0 or higher before saving inventory.")
@@ -424,6 +433,16 @@ export default function HomePage() {
               >
                 {isInventoryActive ? "Finish Inventory" : "Start Inventory"}
               </Button>
+              {isInventoryActive ? (
+                <Button
+                  color="inherit"
+                  onClick={cancelInventorySession}
+                  sx={{ minWidth: { sm: 160 } }}
+                  variant="outlined"
+                >
+                  Cancel Inventory
+                </Button>
+              ) : null}
             </Stack>
           </Stack>
         </Paper>

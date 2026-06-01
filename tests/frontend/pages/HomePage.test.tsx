@@ -274,6 +274,45 @@ describe("HomePage", () => {
     expect(screen.getByLabelText("Inventory note for Printer Paper")).toBeInTheDocument()
     expect(screen.getByText("Counted")).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Finish Inventory" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Cancel Inventory" })).toBeInTheDocument()
+  })
+
+  it("cancels an active inventory session and clears the local draft", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => items,
+      }),
+    )
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+    fireEvent.click(screen.getByRole("button", { name: "Start Inventory" }))
+    fireEvent.change(screen.getByLabelText("Counted quantity for Printer Paper"), {
+      target: { value: "24" },
+    })
+    fireEvent.change(screen.getByLabelText("Inventory note for Printer Paper"), {
+      target: { value: "Front shelf" },
+    })
+
+    expect(window.localStorage.getItem("tally.inventoryTakingDraft.v1")).toContain(
+      "Front shelf",
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel Inventory" }))
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Start Inventory" })).toBeInTheDocument(),
+    )
+    expect(screen.queryByLabelText("Counted quantity for Printer Paper")).not.toBeInTheDocument()
+    expect(screen.getByRole("link", { name: /Printer Paper/i })).toHaveAttribute(
+      "href",
+      "/items/42",
+    )
+    expect(window.localStorage.getItem("tally.inventoryTakingDraft.v1")).toBeNull()
   })
 
   it("persists inventory draft values through reload", async () => {
@@ -410,9 +449,7 @@ describe("HomePage", () => {
       expect(screen.getByRole("button", { name: "Start Inventory" })).toBeInTheDocument(),
     )
     expect(screen.getByText("24 reams")).toBeInTheDocument()
-    expect(window.localStorage.getItem("tally.inventoryTakingDraft.v1")).toContain(
-      '"entries":{}',
-    )
+    expect(window.localStorage.getItem("tally.inventoryTakingDraft.v1")).toBeNull()
   })
 
   it("rejects invalid counted quantities before submitting", async () => {
