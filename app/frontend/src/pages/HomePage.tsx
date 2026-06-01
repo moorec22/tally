@@ -24,6 +24,7 @@ import PageShell from "../components/PageShell"
 import SectionLabel from "../components/SectionLabel"
 import StatusPanel from "../components/StatusPanel"
 import type { InventoryItem, InventorySnapshot } from "../types/inventory"
+import { jsonHeadersWithCsrf } from "../utils/csrf"
 import { presentText, unitSuffix } from "../utils/inventoryPresentation"
 
 type ItemsLoadState =
@@ -301,10 +302,7 @@ export default function HomePage() {
             value,
           })),
         }),
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
+        headers: jsonHeadersWithCsrf(),
         method: "POST",
       })
 
@@ -570,24 +568,30 @@ export default function HomePage() {
                       <Typography sx={{ fontWeight: 700 }}>
                         {presentText(item.name)}
                       </Typography>
+                    </Stack>
+                    <Stack
+                      spacing={0.5}
+                      sx={{
+                        alignSelf: "center",
+                        justifySelf: { sm: "end" },
+                        minWidth: 0,
+                        mt: { xs: 1, sm: 0 },
+                        textAlign: { sm: "right" },
+                      }}
+                    >
+                      <Typography color="text.secondary" sx={{ whiteSpace: "nowrap" }}>
+                        Counted: {value}
+                        {unitSuffix(item.unit)}
+                      </Typography>
                       {note.trim() ? (
-                        <Typography color="text.secondary">
+                        <Typography
+                          color="text.secondary"
+                          sx={{ overflowWrap: "anywhere" }}
+                        >
                           Note: {note}
                         </Typography>
                       ) : null}
                     </Stack>
-                    <Typography
-                      color="text.secondary"
-                      sx={{
-                        alignSelf: "center",
-                        justifySelf: { sm: "end" },
-                        mt: { xs: 1, sm: 0 },
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      Counted: {value}
-                      {unitSuffix(item.unit)}
-                    </Typography>
                   </Box>
                 ))}
               </Stack>

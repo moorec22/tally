@@ -43,6 +43,9 @@ const items: InventoryItem[] = [
 
 describe("HomePage", () => {
   afterEach(() => {
+    document
+      .querySelector('meta[name="csrf-token"]')
+      ?.remove()
     window.localStorage.clear()
     vi.unstubAllGlobals()
   })
@@ -347,6 +350,10 @@ describe("HomePage", () => {
   })
 
   it("confirms inventory by posting a batch payload and updating displayed quantities", async () => {
+    const csrfMeta = document.createElement("meta")
+    csrfMeta.setAttribute("name", "csrf-token")
+    csrfMeta.setAttribute("content", "secure-token")
+    document.head.appendChild(csrfMeta)
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce({
@@ -391,6 +398,9 @@ describe("HomePage", () => {
             inventory_snapshots: [
               { item_id: 42, note: "Front shelf", value: 24 },
             ],
+          }),
+          headers: expect.objectContaining({
+            "X-CSRF-Token": "secure-token",
           }),
           method: "POST",
         }),
