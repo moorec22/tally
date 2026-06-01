@@ -2,7 +2,9 @@ Rails.application.routes.draw do
   root "home#index"
 
   scope "/api/v1" do
-    resources :items, only: [ :index, :show, :update ]
+    resources :items, only: [ :index, :show, :update ] do
+      resources :inventory_snapshots, only: [ :create ]
+    end
   end
 
   get "/items/:id", to: "home#index"
