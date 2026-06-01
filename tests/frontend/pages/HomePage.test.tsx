@@ -41,6 +41,60 @@ const items: InventoryItem[] = [
   },
 ]
 
+const sortableItems: InventoryItem[] = [
+  {
+    id: 52,
+    name: "Cable Ties",
+    category: "Shipping",
+    unit: "packs",
+    preferred_source: null,
+    low: null,
+    high: null,
+    value: 14,
+    last_updated_at: "2026-01-04T15:04:00.000Z",
+  },
+  {
+    id: 51,
+    name: "Printer Paper",
+    category: "Office",
+    unit: "reams",
+    preferred_source: "Supply Closet",
+    low: 5,
+    high: 30,
+    value: 20,
+    last_updated_at: "2026-01-02T15:04:00.000Z",
+  },
+  {
+    id: 54,
+    name: "Mystery Bin",
+    category: null,
+    unit: null,
+    preferred_source: null,
+    low: null,
+    high: null,
+    value: null,
+    last_updated_at: null,
+  },
+  {
+    id: 53,
+    name: "Clipboards",
+    category: "Office",
+    unit: "each",
+    preferred_source: null,
+    low: null,
+    high: null,
+    value: 6,
+    last_updated_at: "2026-01-03T15:04:00.000Z",
+  },
+]
+
+function rowNamesInOrder(expectedNames: string[]) {
+  return screen
+    .getAllByRole("link")
+    .map((link) => expectedNames.find((name) => link.textContent?.includes(name)))
+    .filter((name): name is string => Boolean(name))
+}
+
 describe("HomePage", () => {
   afterEach(() => {
     document
@@ -181,6 +235,110 @@ describe("HomePage", () => {
     expect(screen.queryByText("Printer Paper")).not.toBeInTheDocument()
     expect(screen.queryByText("Packing Tape")).not.toBeInTheDocument()
     expect(screen.getByText("Mystery Bin")).toBeInTheDocument()
+  })
+
+  it("sorts by category ascending by default with uncategorized items last", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => sortableItems,
+      }),
+    )
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+
+    expect(
+      rowNamesInOrder(["Clipboards", "Printer Paper", "Cable Ties", "Mystery Bin"]),
+    ).toEqual(["Clipboards", "Printer Paper", "Cable Ties", "Mystery Bin"])
+  })
+
+  it("toggles category sorting from descending back to ascending", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => sortableItems,
+      }),
+    )
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+
+    fireEvent.click(screen.getByRole("button", { name: /Category/i }))
+
+    expect(
+      rowNamesInOrder(["Cable Ties", "Clipboards", "Printer Paper", "Mystery Bin"]),
+    ).toEqual(["Cable Ties", "Clipboards", "Printer Paper", "Mystery Bin"])
+
+    fireEvent.click(screen.getByRole("button", { name: /Category/i }))
+
+    expect(
+      rowNamesInOrder(["Clipboards", "Printer Paper", "Cable Ties", "Mystery Bin"]),
+    ).toEqual(["Clipboards", "Printer Paper", "Cable Ties", "Mystery Bin"])
+  })
+
+  it("sorts last counted newest first and toggles to oldest first", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => sortableItems,
+      }),
+    )
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+
+    fireEvent.click(screen.getByRole("button", { name: /Last counted/i }))
+
+    expect(
+      rowNamesInOrder(["Cable Ties", "Clipboards", "Printer Paper", "Mystery Bin"]),
+    ).toEqual(["Cable Ties", "Clipboards", "Printer Paper", "Mystery Bin"])
+
+    fireEvent.click(screen.getByRole("button", { name: /Last counted/i }))
+
+    expect(
+      rowNamesInOrder(["Mystery Bin", "Printer Paper", "Clipboards", "Cable Ties"]),
+    ).toEqual(["Mystery Bin", "Printer Paper", "Clipboards", "Cable Ties"])
+  })
+
+  it("sorts after applying search and category filters", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => sortableItems,
+      }),
+    )
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: "Category" }))
+    fireEvent.click(screen.getByRole("option", { name: "Office" }))
+    fireEvent.click(screen.getByRole("button", { name: /Last counted/i }))
+
+    expect(rowNamesInOrder(["Clipboards", "Printer Paper"])).toEqual([
+      "Clipboards",
+      "Printer Paper",
+    ])
+
+    fireEvent.change(screen.getByLabelText("Search inventory"), {
+      target: { value: "paper" },
+    })
+
+    expect(rowNamesInOrder(["Printer Paper"])).toEqual(["Printer Paper"])
+    expect(screen.queryByText("Clipboards")).not.toBeInTheDocument()
   })
 
   it("shows a no-results state when search has no matches", async () => {
