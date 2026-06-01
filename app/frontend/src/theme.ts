@@ -1,22 +1,8 @@
 import { createTheme } from "@mui/material/styles"
 
-export const theme = createTheme({
-  palette: {
-    background: {
-      default: "#f6f8fb",
-      paper: "#ffffff",
-    },
-    primary: {
-      main: "#426b5b",
-    },
-    secondary: {
-      main: "#7b5f3d",
-    },
-    text: {
-      primary: "#202124",
-      secondary: "#4f5965",
-    },
-  },
+export type AppThemeMode = "light" | "dark"
+
+const sharedThemeOptions = {
   shape: {
     borderRadius: 8,
   },
@@ -39,4 +25,49 @@ export const theme = createTheme({
       textTransform: "uppercase",
     },
   },
-})
+} as const
+
+const lightPalette = {
+  mode: "light",
+  background: {
+    default: "#f6f8fb",
+    paper: "#ffffff",
+  },
+  primary: {
+    main: "#426b5b",
+  },
+  secondary: {
+    main: "#7b5f3d",
+  },
+  text: {
+    primary: "#202124",
+    secondary: "#4f5965",
+  },
+} as const
+
+const darkPalette = {
+  mode: "dark",
+  background: {
+    default: "#121614",
+    paper: "#1d2420",
+  },
+  primary: {
+    main: "#8bb8a4",
+  },
+  secondary: {
+    main: "#d1b17d",
+  },
+  text: {
+    primary: "#f3f6f4",
+    secondary: "#b7c1bb",
+  },
+} as const
+
+export function createAppTheme(mode: AppThemeMode) {
+  return createTheme({
+    ...sharedThemeOptions,
+    palette: mode === "dark" ? darkPalette : lightPalette,
+  })
+}
+
+export const theme = createAppTheme("light")

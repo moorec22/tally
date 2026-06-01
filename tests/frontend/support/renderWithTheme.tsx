@@ -1,9 +1,7 @@
 import type { ReactElement } from "react"
 import { render, type RenderOptions } from "@testing-library/react"
-import CssBaseline from "@mui/material/CssBaseline"
-import { ThemeProvider } from "@mui/material/styles"
 
-import { theme } from "../../../app/frontend/src/theme"
+import { AppThemeProvider } from "../../../app/frontend/src/components/AppThemeProvider"
 
 export function renderWithTheme(
   ui: ReactElement,
@@ -11,10 +9,7 @@ export function renderWithTheme(
 ) {
   return render(ui, {
     wrapper: ({ children }) => (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        {children}
-      </ThemeProvider>
+      <AppThemeProvider>{children}</AppThemeProvider>
     ),
     ...options,
   })

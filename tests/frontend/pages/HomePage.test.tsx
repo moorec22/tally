@@ -57,11 +57,10 @@ describe("HomePage", () => {
     renderWithTheme(<HomePage />)
 
     expect(screen.getByText("Loading inventory...")).toBeInTheDocument()
-    await screen.findByRole("link", { name: /Printer Paper/i })
-    expect(screen.getByRole("link", { name: /Printer Paper/i })).toHaveAttribute(
-      "href",
-      "/items/42",
-    )
+    expect(await screen.findByText("Inventory")).toBeInTheDocument()
+    expect(
+      await screen.findByRole("link", { name: /Printer Paper/i }),
+    ).toHaveAttribute("href", "/items/42")
     expect(screen.getByText("Last counted")).toBeInTheDocument()
     expect(screen.getByText("20 reams")).toBeInTheDocument()
     expect(screen.getByText("01/02/2026")).toBeInTheDocument()
