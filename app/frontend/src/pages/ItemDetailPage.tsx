@@ -7,18 +7,13 @@ import StatusPanel from "../components/StatusPanel"
 import ItemDetails from "../components/items/ItemDetails"
 import ItemLoadingState from "../components/items/ItemLoadingState"
 import type { InventoryItem, InventoryItemUpdate } from "../types/inventory"
+import { jsonHeadersWithCsrf } from "../utils/csrf"
 
 type ItemLoadState =
   | { status: "loading" }
   | { status: "loaded"; item: InventoryItem }
   | { status: "not_found" }
   | { status: "error" }
-
-function csrfToken() {
-  return document
-    .querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
-    ?.getAttribute("content")
-}
 
 export default function ItemDetailPage({ itemId }: { itemId: string }) {
   const [loadState, setLoadState] = useState<ItemLoadState>({
@@ -62,19 +57,9 @@ export default function ItemDetailPage({ itemId }: { itemId: string }) {
   }, [itemId])
 
   async function saveItem(values: InventoryItemUpdate) {
-    const token = csrfToken()
-    const headers: Record<string, string> = {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    }
-
-    if (token) {
-      headers["X-CSRF-Token"] = token
-    }
-
     const response = await fetch(`/api/v1/items/${itemId}`, {
       method: "PATCH",
-      headers,
+      headers: jsonHeadersWithCsrf(),
       body: JSON.stringify({ item: values }),
     })
 

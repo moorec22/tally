@@ -19,6 +19,9 @@ const item: InventoryItem = {
 
 describe("ItemDetailPage", () => {
   afterEach(() => {
+    document
+      .querySelector('meta[name="csrf-token"]')
+      ?.remove()
     vi.unstubAllGlobals()
   })
 
@@ -46,6 +49,10 @@ describe("ItemDetailPage", () => {
   })
 
   it("patches item edits and refreshes the loaded item", async () => {
+    const csrfMeta = document.createElement("meta")
+    csrfMeta.setAttribute("name", "csrf-token")
+    csrfMeta.setAttribute("content", "secure-token")
+    document.head.appendChild(csrfMeta)
     const updatedItem: InventoryItem = {
       ...item,
       category: "Warehouse",
@@ -97,6 +104,7 @@ describe("ItemDetailPage", () => {
           headers: expect.objectContaining({
             Accept: "application/json",
             "Content-Type": "application/json",
+            "X-CSRF-Token": "secure-token",
           }),
           body: JSON.stringify({
             item: {

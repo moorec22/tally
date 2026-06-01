@@ -2,6 +2,12 @@ Rails.application.routes.draw do
   root "home#index"
 
   scope "/api/v1" do
+    resources :inventory_snapshots, only: [] do
+      collection do
+        post :bulk
+      end
+    end
+
     resources :items, only: [ :index, :show, :update ] do
       resources :inventory_snapshots, only: [ :create ]
     end

@@ -1,4 +1,4 @@
-import { fireEvent, screen } from "@testing-library/react"
+import { fireEvent, screen, waitFor, within } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import HomePage from "../../../app/frontend/src/pages/HomePage"
@@ -43,6 +43,10 @@ const items: InventoryItem[] = [
 
 describe("HomePage", () => {
   afterEach(() => {
+    document
+      .querySelector('meta[name="csrf-token"]')
+      ?.remove()
+    window.localStorage.clear()
     vi.unstubAllGlobals()
   })
 
@@ -246,5 +250,304 @@ describe("HomePage", () => {
     expect(
       await screen.findByRole("heading", { name: "Unable to load inventory" }),
     ).toBeInTheDocument()
+  })
+
+  it("starts inventory mode with draft inputs and disables row links", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => items,
+      }),
+    )
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByRole("link", { name: /Printer Paper/i })
+    fireEvent.click(screen.getByRole("button", { name: "Start Inventory" }))
+
+    expect(screen.queryByRole("link", { name: /Printer Paper/i })).not.toBeInTheDocument()
+    expect(
+      screen.getByLabelText("Counted quantity for Printer Paper"),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText("Inventory note for Printer Paper")).toBeInTheDocument()
+    expect(screen.getByText("Inventory in progress")).toBeInTheDocument()
+    expect(screen.getByText("Counted")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Finish Inventory" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Cancel Inventory" })).toBeInTheDocument()
+  })
+
+  it("confirms before cancelling an active inventory session and clearing the local draft", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => items,
+      }),
+    )
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+    fireEvent.click(screen.getByRole("button", { name: "Start Inventory" }))
+    fireEvent.change(screen.getByLabelText("Counted quantity for Printer Paper"), {
+      target: { value: "24" },
+    })
+    fireEvent.change(screen.getByLabelText("Inventory note for Printer Paper"), {
+      target: { value: "Front shelf" },
+    })
+
+    expect(window.localStorage.getItem("tally.inventoryTakingDraft.v1")).toContain(
+      "Front shelf",
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel Inventory" }))
+
+    const cancelDialog = await screen.findByRole("dialog", { name: "Cancel Inventory?" })
+    expect(
+      within(cancelDialog).getByText(
+        "This will discard the counts and notes entered for this inventory session.",
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText("Counted quantity for Printer Paper")).toHaveValue(24)
+    expect(window.localStorage.getItem("tally.inventoryTakingDraft.v1")).toContain(
+      "Front shelf",
+    )
+
+    fireEvent.click(within(cancelDialog).getByRole("button", { name: "Keep Inventory" }))
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("dialog", { name: "Cancel Inventory?" }),
+      ).not.toBeInTheDocument(),
+    )
+    expect(screen.getByRole("button", { name: "Finish Inventory" })).toBeInTheDocument()
+    expect(screen.getByLabelText("Counted quantity for Printer Paper")).toHaveValue(24)
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel Inventory" }))
+    const reopenedCancelDialog = await screen.findByRole("dialog", {
+      name: "Cancel Inventory?",
+    })
+    fireEvent.click(
+      within(reopenedCancelDialog).getByRole("button", { name: "Cancel Inventory" }),
+    )
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Start Inventory" })).toBeInTheDocument(),
+    )
+    expect(screen.queryByLabelText("Counted quantity for Printer Paper")).not.toBeInTheDocument()
+    expect(screen.getByRole("link", { name: /Printer Paper/i })).toHaveAttribute(
+      "href",
+      "/items/42",
+    )
+    expect(window.localStorage.getItem("tally.inventoryTakingDraft.v1")).toBeNull()
+  })
+
+  it("persists inventory draft values through reload", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => items,
+    })
+    vi.stubGlobal("fetch", fetchMock)
+
+    const { unmount } = renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+    fireEvent.click(screen.getByRole("button", { name: "Start Inventory" }))
+    fireEvent.change(screen.getByLabelText("Counted quantity for Printer Paper"), {
+      target: { value: "24" },
+    })
+    fireEvent.change(screen.getByLabelText("Inventory note for Printer Paper"), {
+      target: { value: "Front shelf" },
+    })
+
+    unmount()
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+    expect(screen.getByRole("button", { name: "Finish Inventory" })).toBeInTheDocument()
+    expect(screen.getByLabelText("Counted quantity for Printer Paper")).toHaveValue(24)
+    expect(screen.getByLabelText("Inventory note for Printer Paper")).toHaveValue(
+      "Front shelf",
+    )
+  })
+
+  it("reviews only rows with counted quantities and returns to active inventory on cancel", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => items,
+      }),
+    )
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+    fireEvent.click(screen.getByRole("button", { name: "Start Inventory" }))
+    fireEvent.change(screen.getByLabelText("Counted quantity for Printer Paper"), {
+      target: { value: "24" },
+    })
+    fireEvent.change(screen.getByLabelText("Inventory note for Printer Paper"), {
+      target: { value: "Front shelf" },
+    })
+    fireEvent.change(screen.getByLabelText("Inventory note for Packing Tape"), {
+      target: { value: "Note only" },
+    })
+
+    fireEvent.click(screen.getByRole("button", { name: "Finish Inventory" }))
+
+    const dialog = await screen.findByRole("dialog", { name: "Finish Inventory" })
+    expect(within(dialog).getByText("Counted: 24 reams")).toBeInTheDocument()
+    expect(within(dialog).queryByText(/Current:/)).not.toBeInTheDocument()
+    expect(within(dialog).getByText("Note: Front shelf")).toBeInTheDocument()
+    expect(within(dialog).queryByText("Packing Tape")).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }))
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("heading", { name: "Finish Inventory" }),
+      ).not.toBeInTheDocument(),
+    )
+    expect(screen.getByRole("button", { name: "Finish Inventory" })).toBeInTheDocument()
+    expect(screen.getByLabelText("Counted quantity for Printer Paper")).toHaveValue(24)
+  })
+
+  it("confirms inventory by posting a batch payload and updating displayed quantities", async () => {
+    const csrfMeta = document.createElement("meta")
+    csrfMeta.setAttribute("name", "csrf-token")
+    csrfMeta.setAttribute("content", "secure-token")
+    document.head.appendChild(csrfMeta)
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => items,
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        json: async () => [
+          {
+            id: 101,
+            item_id: 42,
+            value: 24,
+            note: "Front shelf",
+            created_at: "2026-01-03T15:04:00.000Z",
+            updated_at: "2026-01-03T15:04:00.000Z",
+          },
+        ],
+      })
+    vi.stubGlobal("fetch", fetchMock)
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+    fireEvent.click(screen.getByRole("button", { name: "Start Inventory" }))
+    fireEvent.change(screen.getByLabelText("Counted quantity for Printer Paper"), {
+      target: { value: "24" },
+    })
+    fireEvent.change(screen.getByLabelText("Inventory note for Printer Paper"), {
+      target: { value: "Front shelf" },
+    })
+    fireEvent.click(screen.getByRole("button", { name: "Finish Inventory" }))
+    fireEvent.click(await screen.findByRole("button", { name: "Confirm" }))
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/v1/inventory_snapshots/bulk",
+        expect.objectContaining({
+          body: JSON.stringify({
+            inventory_snapshots: [
+              { item_id: 42, note: "Front shelf", value: 24 },
+            ],
+          }),
+          headers: expect.objectContaining({
+            "X-CSRF-Token": "secure-token",
+          }),
+          method: "POST",
+        }),
+      ),
+    )
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Start Inventory" })).toBeInTheDocument(),
+    )
+    expect(screen.getByText("24 reams")).toBeInTheDocument()
+    expect(window.localStorage.getItem("tally.inventoryTakingDraft.v1")).toBeNull()
+  })
+
+  it("rejects invalid counted quantities before submitting", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => items,
+    })
+    vi.stubGlobal("fetch", fetchMock)
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+    fireEvent.click(screen.getByRole("button", { name: "Start Inventory" }))
+    fireEvent.change(screen.getByLabelText("Counted quantity for Printer Paper"), {
+      target: { value: "-1" },
+    })
+
+    expect(screen.getByText("Use a whole number 0 or higher.")).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "Finish Inventory" }))
+    fireEvent.click(await screen.findByRole("button", { name: "Confirm" }))
+
+    expect(
+      await screen.findByText("Use whole numbers 0 or higher before saving inventory."),
+    ).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it("keeps active draft values when confirmation fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => items,
+        })
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 422,
+          json: async () => ({ errors: { value: ["is invalid"] } }),
+        }),
+    )
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+    fireEvent.click(screen.getByRole("button", { name: "Start Inventory" }))
+    fireEvent.change(screen.getByLabelText("Counted quantity for Printer Paper"), {
+      target: { value: "24" },
+    })
+    fireEvent.click(screen.getByRole("button", { name: "Finish Inventory" }))
+    fireEvent.click(await screen.findByRole("button", { name: "Confirm" }))
+
+    expect(
+      await screen.findByText("Inventory could not be saved. Check the counts and try again."),
+    ).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }))
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("dialog", { name: "Finish Inventory" }),
+      ).not.toBeInTheDocument(),
+    )
+    expect(screen.getByRole("button", { name: "Finish Inventory" })).toBeInTheDocument()
+    expect(screen.getByLabelText("Counted quantity for Printer Paper")).toHaveValue(24)
   })
 })
