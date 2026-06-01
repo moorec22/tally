@@ -101,6 +101,61 @@ RSpec.describe "Items", type: :request do
     end
   end
 
+  describe "POST /api/v1/items" do
+    it "creates an item and returns the presented item" do
+      expect do
+        post items_path, params: {
+          item: {
+            name: "Printer Paper",
+            category: "Office",
+            unit: "reams",
+            preferred_source: "Supply Closet",
+            low: 5,
+            high: 30
+          }
+        }
+      end.to change(Item, :count).by(1)
+
+      item = Item.last
+
+      expect(response).to have_http_status(:created)
+      expect(response.parsed_body).to eq(
+        "id" => item.id,
+        "name" => "Printer Paper",
+        "category" => "Office",
+        "unit" => "reams",
+        "preferred_source" => "Supply Closet",
+        "low" => 5,
+        "high" => 30,
+        "value" => nil,
+        "last_updated_at" => nil
+      )
+      expect(item).to have_attributes(
+        name: "Printer Paper",
+        category: "Office",
+        unit: "reams",
+        preferred_source: "Supply Closet",
+        low: 5,
+        high: 30
+      )
+    end
+
+    it "does not create an item with invalid attributes" do
+      expect do
+        post items_path, params: {
+          item: {
+            name: "",
+            low: "low",
+            high: "30.5"
+          }
+        }
+      end.not_to change(Item, :count)
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body["errors"]).to include("name", "low", "high")
+    end
+  end
+
   describe "PATCH /api/v1/items/:id" do
     it "updates editable item fields and returns the presented item" do
       item = Item.create!(

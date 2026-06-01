@@ -8,7 +8,7 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :items, only: [ :index, :show, :update ]
+    resources :items, only: [ :index, :show, :create, :update ]
   end
 
   get "/items/:id", to: "home#index"
