@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
+import AddIcon from "@mui/icons-material/Add"
 import ErrorOutlineOutlinedIcon from "@mui/icons-material/ErrorOutlineOutlined"
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined"
 import SearchIcon from "@mui/icons-material/Search"
@@ -19,12 +20,17 @@ import TableSortLabel from "@mui/material/TableSortLabel"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
 
+import ItemCreateDialog from "../components/items/ItemCreateDialog"
 import InventoryItemRow from "../components/items/InventoryItemRow"
 import type { InventoryDraftEntry } from "../components/items/InventoryItemRow"
 import PageShell from "../components/PageShell"
 import SectionLabel from "../components/SectionLabel"
 import StatusPanel from "../components/StatusPanel"
-import type { InventoryItem, InventorySnapshot } from "../types/inventory"
+import type {
+  InventoryItem,
+  InventoryItemCreate,
+  InventorySnapshot,
+} from "../types/inventory"
 import { jsonHeadersWithCsrf } from "../utils/csrf"
 import { presentText, unitSuffix } from "../utils/inventoryPresentation"
 
@@ -229,6 +235,16 @@ function isCountedValue(value: string) {
   return COUNTED_VALUE_PATTERN.test(value.trim())
 }
 
+function sortInventoryItems(items: InventoryItem[]) {
+  return [...items].sort((firstItem, secondItem) => {
+    const nameComparison = presentText(firstItem.name).localeCompare(
+      presentText(secondItem.name),
+    )
+
+    return nameComparison || firstItem.id - secondItem.id
+  })
+}
+
 export default function HomePage() {
   const storedInventoryDraft = useMemo(() => readStoredInventoryDraft(), [])
   const [loadState, setLoadState] = useState<ItemsLoadState>({
@@ -246,6 +262,7 @@ export default function HomePage() {
   const [inventoryDraft, setInventoryDraft] = useState<InventoryDraft>(
     storedInventoryDraft.entries,
   )
+  const [isCreateItemOpen, setIsCreateItemOpen] = useState(false)
   const [isCancelInventoryOpen, setIsCancelInventoryOpen] = useState(false)
   const [isReviewOpen, setIsReviewOpen] = useState(false)
   const [isSubmittingInventory, setIsSubmittingInventory] = useState(false)
@@ -502,6 +519,31 @@ export default function HomePage() {
     }
   }
 
+  async function createItem(values: InventoryItemCreate) {
+    const response = await fetch("/api/v1/items", {
+      body: JSON.stringify({ item: values }),
+      headers: jsonHeadersWithCsrf(),
+      method: "POST",
+    })
+
+    if (!response.ok) {
+      throw new Error("Unable to create item")
+    }
+
+    const item = (await response.json()) as InventoryItem
+
+    setLoadState((currentLoadState) => {
+      if (currentLoadState.status !== "loaded") {
+        return currentLoadState
+      }
+
+      return {
+        status: "loaded",
+        items: sortInventoryItems([...currentLoadState.items, item]),
+      }
+    })
+  }
+
   if (loadState.status === "error") {
     return (
       <PageShell>
@@ -579,6 +621,14 @@ export default function HomePage() {
                 variant={isInventoryActive ? "contained" : "outlined"}
               >
                 {isInventoryActive ? "Finish Inventory" : "Start Inventory"}
+              </Button>
+              <Button
+                onClick={() => setIsCreateItemOpen(true)}
+                startIcon={<AddIcon />}
+                sx={{ minWidth: { sm: 140 } }}
+                variant="contained"
+              >
+                Add Item
               </Button>
               {isInventoryActive ? (
                 <Button
@@ -828,6 +878,11 @@ export default function HomePage() {
           </Button>
         </DialogActions>
       </Dialog>
+      <ItemCreateDialog
+        onClose={() => setIsCreateItemOpen(false)}
+        onCreate={createItem}
+        open={isCreateItemOpen}
+      />
       <Dialog
         fullWidth
         maxWidth="xs"
