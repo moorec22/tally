@@ -15,6 +15,7 @@ import InputAdornment from "@mui/material/InputAdornment"
 import MenuItem from "@mui/material/MenuItem"
 import Paper from "@mui/material/Paper"
 import Stack from "@mui/material/Stack"
+import TableSortLabel from "@mui/material/TableSortLabel"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
 
@@ -42,6 +43,14 @@ type CategoryFilterOption = {
   value: string
 }
 
+type InventorySortField = "category" | "last_counted"
+type SortDirection = "asc" | "desc"
+
+type InventorySort = {
+  direction: SortDirection
+  field: InventorySortField
+}
+
 type InventoryDraft = Record<number, InventoryDraftEntry>
 
 type StoredInventoryDraft = {
@@ -61,6 +70,88 @@ function searchableText(item: InventoryItem) {
 
 function normalizedCategory(item: InventoryItem) {
   return item.category?.trim() ?? ""
+}
+
+function normalizedName(item: InventoryItem) {
+  return item.name?.trim() ?? ""
+}
+
+function compareNames(firstItem: InventoryItem, secondItem: InventoryItem) {
+  const nameComparison = normalizedName(firstItem).localeCompare(
+    normalizedName(secondItem),
+  )
+
+  if (nameComparison !== 0) {
+    return nameComparison
+  }
+
+  return firstItem.id - secondItem.id
+}
+
+function compareByCategory(
+  firstItem: InventoryItem,
+  secondItem: InventoryItem,
+  direction: SortDirection,
+) {
+  const firstCategory = normalizedCategory(firstItem)
+  const secondCategory = normalizedCategory(secondItem)
+
+  if (!firstCategory && secondCategory) {
+    return 1
+  }
+
+  if (firstCategory && !secondCategory) {
+    return -1
+  }
+
+  const categoryComparison = firstCategory.localeCompare(secondCategory)
+
+  if (categoryComparison !== 0) {
+    return direction === "asc" ? categoryComparison : -categoryComparison
+  }
+
+  return compareNames(firstItem, secondItem)
+}
+
+function compareByLastCounted(
+  firstItem: InventoryItem,
+  secondItem: InventoryItem,
+  direction: SortDirection,
+) {
+  const firstTimestamp = firstItem.last_updated_at
+    ? Date.parse(firstItem.last_updated_at)
+    : null
+  const secondTimestamp = secondItem.last_updated_at
+    ? Date.parse(secondItem.last_updated_at)
+    : null
+
+  if (firstTimestamp === null && secondTimestamp !== null) {
+    return direction === "asc" ? -1 : 1
+  }
+
+  if (firstTimestamp !== null && secondTimestamp === null) {
+    return direction === "asc" ? 1 : -1
+  }
+
+  if (firstTimestamp !== null && secondTimestamp !== null) {
+    const timestampComparison = firstTimestamp - secondTimestamp
+
+    if (timestampComparison !== 0) {
+      return direction === "asc" ? timestampComparison : -timestampComparison
+    }
+  }
+
+  return compareNames(firstItem, secondItem)
+}
+
+function sortInventoryItems(items: InventoryItem[], sort: InventorySort) {
+  return [...items].sort((firstItem, secondItem) => {
+    if (sort.field === "category") {
+      return compareByCategory(firstItem, secondItem, sort.direction)
+    }
+
+    return compareByLastCounted(firstItem, secondItem, sort.direction)
+  })
 }
 
 function readStoredInventoryDraft(): StoredInventoryDraft {
@@ -145,6 +236,10 @@ export default function HomePage() {
   })
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORIES)
+  const [inventorySort, setInventorySort] = useState<InventorySort>({
+    direction: "asc",
+    field: "category",
+  })
   const [isInventoryActive, setIsInventoryActive] = useState(
     storedInventoryDraft.isActive,
   )
@@ -229,7 +324,7 @@ export default function HomePage() {
 
     const normalizedQuery = searchQuery.trim().toLowerCase()
 
-    return loadState.items.filter((item) => {
+    const matchingItems = loadState.items.filter((item) => {
       const category = normalizedCategory(item)
       const matchesSearch =
         !normalizedQuery || searchableText(item).includes(normalizedQuery)
@@ -241,7 +336,9 @@ export default function HomePage() {
 
       return matchesSearch && matchesCategory
     })
-  }, [loadState, searchQuery, selectedCategory])
+
+    return sortInventoryItems(matchingItems, inventorySort)
+  }, [inventorySort, loadState, searchQuery, selectedCategory])
 
   const countedInventoryItems = useMemo<CountedInventoryItem[]>(() => {
     if (loadState.status !== "loaded") {
@@ -290,6 +387,22 @@ export default function HomePage() {
     }
 
     setIsInventoryActive(true)
+  }
+
+  function handleSortChange(field: InventorySortField) {
+    setInventorySort((currentSort) => {
+      if (currentSort.field !== field) {
+        return {
+          field,
+          direction: field === "last_counted" ? "desc" : "asc",
+        }
+      }
+
+      return {
+        ...currentSort,
+        direction: currentSort.direction === "asc" ? "desc" : "asc",
+      }
+    })
   }
 
   function handleDraftChange(itemId: number, draftEntry: InventoryDraftEntry) {
@@ -563,15 +676,49 @@ export default function HomePage() {
                 <Typography component="span" variant="overline">
                   Name
                 </Typography>
-                <Typography component="span" variant="overline">
-                  Category
-                </Typography>
+                <TableSortLabel
+                  active={inventorySort.field === "category"}
+                  direction={
+                    inventorySort.field === "category"
+                      ? inventorySort.direction
+                      : "asc"
+                  }
+                  onClick={() => handleSortChange("category")}
+                  sx={{
+                    justifyContent: "flex-start",
+                    width: "fit-content",
+                    ".MuiTableSortLabel-icon": {
+                      ml: 0.25,
+                    },
+                  }}
+                >
+                  <Typography component="span" variant="overline">
+                    Category
+                  </Typography>
+                </TableSortLabel>
                 <Typography component="span" variant="overline">
                   Quantity
                 </Typography>
-                <Typography component="span" variant="overline">
-                  Last counted
-                </Typography>
+                <TableSortLabel
+                  active={inventorySort.field === "last_counted"}
+                  direction={
+                    inventorySort.field === "last_counted"
+                      ? inventorySort.direction
+                      : "desc"
+                  }
+                  onClick={() => handleSortChange("last_counted")}
+                  sx={{
+                    justifyContent: "flex-start",
+                    width: "fit-content",
+                    ".MuiTableSortLabel-icon": {
+                      ml: 0.25,
+                    },
+                  }}
+                >
+                  <Typography component="span" variant="overline">
+                    Last counted
+                  </Typography>
+                </TableSortLabel>
                 {isInventoryActive ? (
                   <>
                     <Typography component="span" variant="overline">
