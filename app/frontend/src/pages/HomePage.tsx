@@ -110,9 +110,6 @@ export default function HomePage() {
             </SectionLabel>
 
             <Box>
-              <Typography component="h1" sx={{ fontWeight: 700 }} variant="h3">
-                Inventory items
-              </Typography>
               <Typography color="text.secondary" sx={{ mt: 1 }}>
                 Search and scan current stock levels.
               </Typography>
