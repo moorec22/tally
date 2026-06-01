@@ -11,7 +11,7 @@ const items: InventoryItem[] = [
     name: "Printer Paper",
     category: "Office",
     unit: "reams",
-    source: "Supply Closet",
+    preferred_source: "Supply Closet",
     low: 5,
     high: 30,
     value: 20,
@@ -22,11 +22,11 @@ const items: InventoryItem[] = [
     name: "Packing Tape",
     category: "Shipping",
     unit: "rolls",
-    source: null,
+    preferred_source: null,
     low: null,
     high: null,
     value: 8,
-    last_updated_at: "2026-01-02T15:04:00.000Z",
+    last_updated_at: null,
   },
 ]
 
@@ -53,7 +53,10 @@ describe("HomePage", () => {
       "href",
       "/items/42",
     )
+    expect(screen.getByText("Last counted")).toBeInTheDocument()
     expect(screen.getByText("20 reams")).toBeInTheDocument()
+    expect(screen.getByText("01/02/2026")).toBeInTheDocument()
+    expect(screen.getByText("Not counted")).toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/v1/items",
       expect.objectContaining({

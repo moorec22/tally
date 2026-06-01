@@ -310,7 +310,7 @@ export default function ItemDetails({ item, onSave }: ItemDetailsProps) {
             )}
             <ItemAttribute
               icon={<AccessTimeOutlinedIcon color="primary" />}
-              label="Last updated"
+              label="Last counted"
               value={presentTimestamp(item.last_updated_at)}
             />
           </Box>
