@@ -277,7 +277,7 @@ describe("HomePage", () => {
     expect(screen.getByRole("button", { name: "Cancel Inventory" })).toBeInTheDocument()
   })
 
-  it("cancels an active inventory session and clears the local draft", async () => {
+  it("confirms before cancelling an active inventory session and clearing the local draft", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
@@ -303,6 +303,35 @@ describe("HomePage", () => {
     )
 
     fireEvent.click(screen.getByRole("button", { name: "Cancel Inventory" }))
+
+    const cancelDialog = await screen.findByRole("dialog", { name: "Cancel Inventory?" })
+    expect(
+      within(cancelDialog).getByText(
+        "This will discard the counts and notes entered for this inventory session.",
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText("Counted quantity for Printer Paper")).toHaveValue(24)
+    expect(window.localStorage.getItem("tally.inventoryTakingDraft.v1")).toContain(
+      "Front shelf",
+    )
+
+    fireEvent.click(within(cancelDialog).getByRole("button", { name: "Keep Inventory" }))
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("dialog", { name: "Cancel Inventory?" }),
+      ).not.toBeInTheDocument(),
+    )
+    expect(screen.getByRole("button", { name: "Finish Inventory" })).toBeInTheDocument()
+    expect(screen.getByLabelText("Counted quantity for Printer Paper")).toHaveValue(24)
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel Inventory" }))
+    const reopenedCancelDialog = await screen.findByRole("dialog", {
+      name: "Cancel Inventory?",
+    })
+    fireEvent.click(
+      within(reopenedCancelDialog).getByRole("button", { name: "Cancel Inventory" }),
+    )
 
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Start Inventory" })).toBeInTheDocument(),

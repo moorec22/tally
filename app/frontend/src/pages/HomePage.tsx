@@ -123,6 +123,7 @@ export default function HomePage() {
   const [inventoryDraft, setInventoryDraft] = useState<InventoryDraft>(
     storedInventoryDraft.entries,
   )
+  const [isCancelInventoryOpen, setIsCancelInventoryOpen] = useState(false)
   const [isReviewOpen, setIsReviewOpen] = useState(false)
   const [isSubmittingInventory, setIsSubmittingInventory] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -280,11 +281,16 @@ export default function HomePage() {
   function clearInventoryDraft() {
     setInventoryDraft({})
     setIsInventoryActive(false)
+    setIsCancelInventoryOpen(false)
     setIsReviewOpen(false)
     setSubmitError(null)
   }
 
   function cancelInventorySession() {
+    setIsCancelInventoryOpen(true)
+  }
+
+  function confirmCancelInventorySession() {
     clearInventoryDraft()
   }
 
@@ -630,6 +636,29 @@ export default function HomePage() {
             variant="contained"
           >
             Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        fullWidth
+        maxWidth="xs"
+        onClose={() => setIsCancelInventoryOpen(false)}
+        open={isCancelInventoryOpen}
+      >
+        <DialogTitle>Cancel Inventory?</DialogTitle>
+        <DialogContent>
+          <Typography color="text.secondary" sx={{ pt: 1 }}>
+            This will discard the counts and notes entered for this inventory session.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsCancelInventoryOpen(false)}>Keep Inventory</Button>
+          <Button
+            color="error"
+            onClick={confirmCancelInventorySession}
+            variant="contained"
+          >
+            Cancel Inventory
           </Button>
         </DialogActions>
       </Dialog>
