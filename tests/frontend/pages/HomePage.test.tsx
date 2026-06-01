@@ -223,6 +223,218 @@ describe("HomePage", () => {
     ).toBeInTheDocument()
   })
 
+  it("opens an add item modal from the inventory page", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => items,
+      }),
+    )
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+    fireEvent.click(screen.getByRole("button", { name: "Add Item" }))
+
+    const dialog = await screen.findByRole("dialog", { name: "Add Item" })
+    expect(within(dialog).getByLabelText(/Name/)).toBeInTheDocument()
+    expect(within(dialog).getByLabelText(/Category/)).toBeInTheDocument()
+    expect(within(dialog).getByLabelText(/Unit/)).toBeInTheDocument()
+    expect(within(dialog).getByLabelText("Preferred source")).toBeInTheDocument()
+    expect(within(dialog).getByLabelText("Low")).toBeInTheDocument()
+    expect(within(dialog).getByLabelText("High")).toBeInTheDocument()
+  })
+
+  it("requires core item fields before creating an item", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => items,
+    })
+    vi.stubGlobal("fetch", fetchMock)
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+    fireEvent.click(screen.getByRole("button", { name: "Add Item" }))
+
+    const dialog = await screen.findByRole("dialog", { name: "Add Item" })
+    fireEvent.click(within(dialog).getByRole("button", { name: "Create" }))
+
+    expect(
+      await within(dialog).findByText("Name, category, and unit are required."),
+    ).toBeInTheDocument()
+    expect(within(dialog).getAllByText("Required.")).toHaveLength(3)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it("rejects invalid item thresholds before creating an item", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => items,
+    })
+    vi.stubGlobal("fetch", fetchMock)
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+    fireEvent.click(screen.getByRole("button", { name: "Add Item" }))
+
+    const dialog = await screen.findByRole("dialog", { name: "Add Item" })
+    fireEvent.change(within(dialog).getByLabelText(/Name/), {
+      target: { value: "Label Sheets" },
+    })
+    fireEvent.change(within(dialog).getByLabelText(/Category/), {
+      target: { value: "Office" },
+    })
+    fireEvent.change(within(dialog).getByLabelText(/Unit/), {
+      target: { value: "packs" },
+    })
+    fireEvent.change(within(dialog).getByLabelText("Low"), {
+      target: { value: "low" },
+    })
+    fireEvent.change(within(dialog).getByLabelText("High"), {
+      target: { value: "12.5" },
+    })
+    fireEvent.click(within(dialog).getByRole("button", { name: "Create" }))
+
+    expect(
+      await within(dialog).findByText("Low and high must be whole numbers."),
+    ).toBeInTheDocument()
+    expect(within(dialog).getAllByText("Enter a whole number.")).toHaveLength(2)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it("creates an item and renders it in the inventory list", async () => {
+    const csrfMeta = document.createElement("meta")
+    csrfMeta.setAttribute("name", "csrf-token")
+    csrfMeta.setAttribute("content", "secure-token")
+    document.head.appendChild(csrfMeta)
+    const createdItem: InventoryItem = {
+      id: 45,
+      name: "Label Sheets",
+      category: "Office",
+      unit: "packs",
+      preferred_source: null,
+      low: 2,
+      high: 12,
+      value: null,
+      last_updated_at: null,
+    }
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => items,
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        json: async () => createdItem,
+      })
+    vi.stubGlobal("fetch", fetchMock)
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+    fireEvent.click(screen.getByRole("button", { name: "Add Item" }))
+
+    const dialog = await screen.findByRole("dialog", { name: "Add Item" })
+    fireEvent.change(within(dialog).getByLabelText(/Name/), {
+      target: { value: "Label Sheets" },
+    })
+    fireEvent.change(within(dialog).getByLabelText(/Category/), {
+      target: { value: "Office" },
+    })
+    fireEvent.change(within(dialog).getByLabelText(/Unit/), {
+      target: { value: "packs" },
+    })
+    fireEvent.change(within(dialog).getByLabelText("Low"), {
+      target: { value: "2" },
+    })
+    fireEvent.change(within(dialog).getByLabelText("High"), {
+      target: { value: "12" },
+    })
+    fireEvent.click(within(dialog).getByRole("button", { name: "Create" }))
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/v1/items",
+        expect.objectContaining({
+          body: JSON.stringify({
+            item: {
+              name: "Label Sheets",
+              category: "Office",
+              unit: "packs",
+              preferred_source: null,
+              low: 2,
+              high: 12,
+            },
+          }),
+          headers: expect.objectContaining({
+            "X-CSRF-Token": "secure-token",
+          }),
+          method: "POST",
+        }),
+      ),
+    )
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("dialog", { name: "Add Item" }),
+      ).not.toBeInTheDocument(),
+    )
+    expect(screen.getByRole("link", { name: /Label Sheets/i })).toHaveAttribute(
+      "href",
+      "/items/45",
+    )
+    expect(screen.getAllByText("Not counted")).toHaveLength(3)
+  })
+
+  it("keeps the add item modal open when creation fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => items,
+        })
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 422,
+          json: async () => ({ errors: { name: ["can't be blank"] } }),
+        }),
+    )
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+    fireEvent.click(screen.getByRole("button", { name: "Add Item" }))
+
+    const dialog = await screen.findByRole("dialog", { name: "Add Item" })
+    fireEvent.change(within(dialog).getByLabelText(/Name/), {
+      target: { value: "Label Sheets" },
+    })
+    fireEvent.change(within(dialog).getByLabelText(/Category/), {
+      target: { value: "Office" },
+    })
+    fireEvent.change(within(dialog).getByLabelText(/Unit/), {
+      target: { value: "packs" },
+    })
+    fireEvent.click(within(dialog).getByRole("button", { name: "Create" }))
+
+    expect(
+      await within(dialog).findByText("Unable to create item. Try again."),
+    ).toBeInTheDocument()
+    expect(screen.getByRole("dialog", { name: "Add Item" })).toBeInTheDocument()
+    expect(screen.queryByRole("link", { name: /Label Sheets/i })).not.toBeInTheDocument()
+  })
+
   it("shows an error state when the API request fails", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Network down")))
 

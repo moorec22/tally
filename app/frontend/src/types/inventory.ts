@@ -18,6 +18,12 @@ export type InventoryItemUpdate = {
   high: number | null
 }
 
+export type InventoryItemCreate = InventoryItemUpdate & {
+  name: string
+  category: string
+  unit: string
+}
+
 export type InventorySnapshot = {
   id: number
   item_id: number
