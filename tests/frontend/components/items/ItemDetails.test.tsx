@@ -31,7 +31,7 @@ describe("ItemDetails", () => {
     expect(screen.getByText("5")).toBeInTheDocument()
     expect(screen.getByText("High")).toBeInTheDocument()
     expect(screen.getByText("30")).toBeInTheDocument()
-    expect(screen.getByText("Last updated")).toBeInTheDocument()
+    expect(screen.getByText("Last counted")).toBeInTheDocument()
     expect(screen.getByText(/2026/)).toBeInTheDocument()
   })
 

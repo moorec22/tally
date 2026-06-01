@@ -4,12 +4,17 @@ import Link from "@mui/material/Link"
 import Typography from "@mui/material/Typography"
 
 import type { InventoryItem } from "../../types/inventory"
-import { presentText, unitSuffix } from "../../utils/inventoryPresentation"
+import {
+  presentCompactDate,
+  presentText,
+  unitSuffix,
+} from "../../utils/inventoryPresentation"
 
 export default function InventoryItemRow({ item }: { item: InventoryItem }) {
   const itemName = presentText(item.name)
   const category = presentText(item.category)
   const quantity = item.value === null ? "--" : item.value.toString()
+  const lastCounted = presentCompactDate(item.last_updated_at)
 
   return (
     <Box
@@ -29,8 +34,8 @@ export default function InventoryItemRow({ item }: { item: InventoryItem }) {
           display: "grid",
           gap: 2,
           gridTemplateColumns: {
-            xs: "1fr auto",
-            sm: "minmax(0, 1fr) 160px 140px 24px",
+            xs: "minmax(0, 1fr) auto",
+            sm: "minmax(0, 1fr) 120px 110px minmax(140px, 170px) 24px",
           },
           px: 3,
           py: 2,
@@ -51,6 +56,7 @@ export default function InventoryItemRow({ item }: { item: InventoryItem }) {
           sx={{
             fontWeight: 700,
             gridColumn: { sm: 1 },
+            gridRow: { xs: 1, sm: "auto" },
             minWidth: 0,
             overflowWrap: "anywhere",
           }}
@@ -75,13 +81,27 @@ export default function InventoryItemRow({ item }: { item: InventoryItem }) {
           component="span"
           sx={{
             fontWeight: 700,
-            gridColumn: { sm: 3 },
+            gridColumn: { xs: 2, sm: 3 },
+            gridRow: { xs: 1, sm: "auto" },
             justifySelf: "start",
             whiteSpace: "nowrap",
           }}
         >
           {quantity}
           {unitSuffix(item.unit)}
+        </Typography>
+
+        <Typography
+          color="text.secondary"
+          component="span"
+          sx={{
+            gridColumn: { xs: "1 / -1", sm: 4 },
+            gridRow: { xs: 3, sm: "auto" },
+            minWidth: 0,
+            overflowWrap: "anywhere",
+          }}
+        >
+          {lastCounted}
         </Typography>
 
         <ChevronRightIcon

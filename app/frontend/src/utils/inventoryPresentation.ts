@@ -26,3 +26,21 @@ export function presentTimestamp(value: string | null) {
     timeStyle: "short",
   }).format(date)
 }
+
+export function presentCompactDate(value: string | null) {
+  if (!value) {
+    return "Not counted"
+  }
+
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) {
+    return "Not set"
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date)
+}
