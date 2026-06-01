@@ -75,11 +75,39 @@ function readStoredInventoryDraft(): StoredInventoryDraft {
       return { isActive: false, entries: {} }
     }
 
-    const parsedDraft = JSON.parse(storedDraft) as Partial<StoredInventoryDraft>
+    const parsedDraft = JSON.parse(storedDraft) as {
+      isActive?: unknown
+      entries?: unknown
+    }
+
+    const rawEntries =
+      typeof parsedDraft.entries === "object" && parsedDraft.entries !== null
+        ? (parsedDraft.entries as Record<string, unknown>)
+        : {}
+
+    const entries: InventoryDraft = {}
+
+    for (const [key, entry] of Object.entries(rawEntries)) {
+      const itemId = Number(key)
+      if (!Number.isFinite(itemId) || typeof entry !== "object" || entry === null) {
+        continue
+      }
+
+      const value = (entry as { value?: unknown }).value
+      const note = (entry as { note?: unknown }).note
+      const normalizedEntry: InventoryDraftEntry = {
+        value: typeof value === "string" ? value : "",
+        note: typeof note === "string" ? note : "",
+      }
+
+      if (normalizedEntry.value.trim() || normalizedEntry.note.trim()) {
+        entries[itemId] = normalizedEntry
+      }
+    }
 
     return {
       isActive: parsedDraft.isActive === true,
-      entries: parsedDraft.entries ?? {},
+      entries,
     }
   } catch {
     return { isActive: false, entries: {} }
