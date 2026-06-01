@@ -16,6 +16,16 @@ class ItemsController < ApplicationController
     render json: presented_item(item)
   end
 
+  def create
+    item = Item.new(create_item_params)
+
+    if item.save
+      render json: presented_item(item), status: :created
+    else
+      render json: { errors: item.errors.to_hash }, status: :unprocessable_content
+    end
+  end
+
   def update
     item = Item.find(params[:id])
 
@@ -41,6 +51,10 @@ class ItemsController < ApplicationController
       .select("DISTINCT ON (item_id) inventory_snapshots.*")
       .order(:item_id, created_at: :desc, id: :desc)
       .index_by(&:item_id)
+  end
+
+  def create_item_params
+    params.require(:item).permit(:name, :unit, :low, :high, :category, :preferred_source)
   end
 
   def item_params
