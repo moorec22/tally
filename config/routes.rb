@@ -8,9 +8,7 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :items, only: [ :index, :show, :update ] do
-      resources :inventory_snapshots, only: [ :create ]
-    end
+    resources :items, only: [ :index, :show, :update ]
   end
 
   get "/items/:id", to: "home#index"
