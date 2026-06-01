@@ -91,10 +91,8 @@ const sortableItems: InventoryItem[] = [
 function rowNamesInOrder(expectedNames: string[]) {
   return screen
     .getAllByRole("link")
-    .map((link) =>
-      expectedNames.find((name) => link.textContent?.includes(name)),
-    )
-    .filter(Boolean)
+    .map((link) => expectedNames.find((name) => link.textContent?.includes(name)))
+    .filter((name): name is string => Boolean(name))
 }
 
 describe("HomePage", () => {
