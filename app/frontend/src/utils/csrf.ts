@@ -1,4 +1,8 @@
 export function csrfToken() {
+  if (typeof document === "undefined") {
+    return undefined
+  }
+
   return document
     .querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
     ?.getAttribute("content")
