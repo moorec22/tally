@@ -462,6 +462,20 @@ export default function HomePage() {
             overflow: "hidden",
           }}
         >
+          {isInventoryActive ? (
+            <Alert
+              icon={<Inventory2OutlinedIcon fontSize="inherit" />}
+              severity="info"
+              sx={{
+                borderBottom: 1,
+                borderColor: "divider",
+                borderRadius: 0,
+              }}
+            >
+              Inventory in progress
+            </Alert>
+          ) : null}
+
           {loadState.status === "loading" ? (
             <Stack
               spacing={2}

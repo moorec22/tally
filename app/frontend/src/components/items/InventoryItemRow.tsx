@@ -1,5 +1,6 @@
 import ChevronRightIcon from "@mui/icons-material/ChevronRight"
 import Box from "@mui/material/Box"
+import Fade from "@mui/material/Fade"
 import Link from "@mui/material/Link"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
@@ -101,44 +102,48 @@ export default function InventoryItemRow({
 
       {isInventoryActive ? (
         <>
-          <TextField
-            error={hasInvalidCount}
-            helperText={hasInvalidCount ? "Use a whole number 0 or higher." : undefined}
-            inputMode="numeric"
-            label="Counted quantity"
-            onChange={(event) =>
-              onDraftChange?.(item.id, {
-                ...draftEntry,
-                value: event.target.value,
-              })
-            }
-            size="small"
-            slotProps={{
-              htmlInput: {
-                "aria-label": `Counted quantity for ${itemName}`,
-                min: 0,
-                step: 1,
-              },
-            }}
-            sx={{ gridColumn: { xs: "1 / -1", sm: 5 } }}
-            type="number"
-            value={draftEntry.value}
-          />
-          <TextField
-            label="Note"
-            onChange={(event) =>
-              onDraftChange?.(item.id, {
-                ...draftEntry,
-                note: event.target.value,
-              })
-            }
-            size="small"
-            slotProps={{
-              htmlInput: { "aria-label": `Inventory note for ${itemName}` },
-            }}
-            sx={{ gridColumn: { xs: "1 / -1", sm: 6 } }}
-            value={draftEntry.note}
-          />
+          <Fade in timeout={160}>
+            <TextField
+              error={hasInvalidCount}
+              helperText={hasInvalidCount ? "Use a whole number 0 or higher." : undefined}
+              inputMode="numeric"
+              label="Counted quantity"
+              onChange={(event) =>
+                onDraftChange?.(item.id, {
+                  ...draftEntry,
+                  value: event.target.value,
+                })
+              }
+              size="small"
+              slotProps={{
+                htmlInput: {
+                  "aria-label": `Counted quantity for ${itemName}`,
+                  min: 0,
+                  step: 1,
+                },
+              }}
+              sx={{ gridColumn: { xs: "1 / -1", sm: 5 } }}
+              type="number"
+              value={draftEntry.value}
+            />
+          </Fade>
+          <Fade in timeout={190}>
+            <TextField
+              label="Note"
+              onChange={(event) =>
+                onDraftChange?.(item.id, {
+                  ...draftEntry,
+                  note: event.target.value,
+                })
+              }
+              size="small"
+              slotProps={{
+                htmlInput: { "aria-label": `Inventory note for ${itemName}` },
+              }}
+              sx={{ gridColumn: { xs: "1 / -1", sm: 6 } }}
+              value={draftEntry.note}
+            />
+          </Fade>
         </>
       ) : (
         <ChevronRightIcon

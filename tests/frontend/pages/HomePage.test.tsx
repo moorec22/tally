@@ -272,6 +272,7 @@ describe("HomePage", () => {
       screen.getByLabelText("Counted quantity for Printer Paper"),
     ).toBeInTheDocument()
     expect(screen.getByLabelText("Inventory note for Printer Paper")).toBeInTheDocument()
+    expect(screen.getByText("Inventory in progress")).toBeInTheDocument()
     expect(screen.getByText("Counted")).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Finish Inventory" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Cancel Inventory" })).toBeInTheDocument()
