@@ -72,3 +72,26 @@ Run the test suite:
 ```sh
 mise exec -- bundle exec rspec
 ```
+
+## Docker
+
+Build the production image:
+
+```sh
+docker build -t tally .
+```
+
+Run the app and PostgreSQL with Docker Compose:
+
+```sh
+RAILS_MASTER_KEY=$(cat config/master.key) POSTGRES_PASSWORD=replace-with-a-secure-password docker compose up --build
+```
+
+The app will be available at <http://localhost:3000>. Compose stores uploaded
+files in the `tally_storage` volume and PostgreSQL data in the `tally_postgres`
+volume.
+
+For managed Docker platforms, provide `RAILS_MASTER_KEY` and either the
+`POSTGRES_*` variables used by `compose.yaml` or `DATABASE_URL`. If you use
+separate databases for Solid Cache, Solid Queue, or Solid Cable, set
+`CACHE_DATABASE_URL`, `QUEUE_DATABASE_URL`, and `CABLE_DATABASE_URL`.

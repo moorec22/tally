@@ -1,0 +1,41 @@
+services:
+  web:
+    build: .
+    image: tally
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY:?Set RAILS_MASTER_KEY before starting Compose}
+      POSTGRES_HOST: db
+      POSTGRES_USER: tally
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD before starting Compose}
+      POSTGRES_DB: tally_production
+      POSTGRES_CACHE_DB: tally_production_cache
+      POSTGRES_QUEUE_DB: tally_production_queue
+      POSTGRES_CABLE_DB: tally_production_cable
+      SOLID_QUEUE_IN_PUMA: "true"
+    ports:
+      - "3000:80"
+    volumes:
+      - tally_storage:/rails/storage
+    restart: unless-stopped
+
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: tally
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD before starting Compose}
+      POSTGRES_DB: tally_production
+    volumes:
+      - tally_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tally -d tally_production"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  tally_postgres:
+  tally_storage:

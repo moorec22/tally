@@ -1,3 +1,19 @@
+<%
+require "uri"
+
+def database_url_for(env_key, database_name)
+  explicit_url = ENV[env_key]
+  return explicit_url unless explicit_url.to_s.empty?
+
+  base_url = ENV["DATABASE_URL"]
+  return if base_url.to_s.empty?
+
+  uri = URI.parse(base_url)
+  uri.path = "/#{database_name}"
+  uri.to_s
+end
+%>
+
 default: &default
   adapter: postgresql
   encoding: unicode
@@ -21,16 +37,20 @@ test:
 production:
   primary: &primary_production
     <<: *default
+    url: <%= database_url_for("DATABASE_URL", ENV.fetch("POSTGRES_DB", "tally_production")) %>
     database: <%= ENV.fetch("POSTGRES_DB", "tally_production") %>
   cache:
     <<: *primary_production
+    url: <%= database_url_for("CACHE_DATABASE_URL", ENV.fetch("POSTGRES_CACHE_DB", "tally_production_cache")) %>
     database: <%= ENV.fetch("POSTGRES_CACHE_DB", "tally_production_cache") %>
     migrations_paths: db/cache_migrate
   queue:
     <<: *primary_production
+    url: <%= database_url_for("QUEUE_DATABASE_URL", ENV.fetch("POSTGRES_QUEUE_DB", "tally_production_queue")) %>
     database: <%= ENV.fetch("POSTGRES_QUEUE_DB", "tally_production_queue") %>
     migrations_paths: db/queue_migrate
   cable:
     <<: *primary_production
+    url: <%= database_url_for("CABLE_DATABASE_URL", ENV.fetch("POSTGRES_CABLE_DB", "tally_production_cable")) %>
     database: <%= ENV.fetch("POSTGRES_CABLE_DB", "tally_production_cable") %>
     migrations_paths: db/cable_migrate
