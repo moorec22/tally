@@ -14,12 +14,16 @@ local:
 #   region: us-east-1
 #   bucket: your_own_bucket-<%= Rails.env %>
 
-# Remember not to checkin your GCS keyfile to a repository
-# google:
-#   service: GCS
-#   project: your_project
-#   credentials: <%= Rails.root.join("path/to/gcs.keyfile") %>
-#   bucket: your_own_bucket-<%= Rails.env %>
+# Uses Cloud Run's application default credentials by default. Set
+# GOOGLE_APPLICATION_CREDENTIALS only when running outside Google Cloud with a
+# local service-account key.
+google:
+  service: GCS
+  project: <%= ENV.fetch("GOOGLE_CLOUD_PROJECT", ENV["GOOGLE_PROJECT_ID"]) %>
+  bucket: <%= ENV["GOOGLE_CLOUD_STORAGE_BUCKET"] %>
+<% unless ENV["GOOGLE_APPLICATION_CREDENTIALS"].to_s.empty? %>
+  credentials: <%= ENV["GOOGLE_APPLICATION_CREDENTIALS"] %>
+<% end %>
 
 # mirror:
 #   service: Mirror

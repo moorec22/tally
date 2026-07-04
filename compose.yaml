@@ -16,7 +16,7 @@ services:
       POSTGRES_CABLE_DB: tally_production_cable
       SOLID_QUEUE_IN_PUMA: "true"
     ports:
-      - "3000:80"
+      - "3000:8080"
     volumes:
       - tally_storage:/rails/storage
     restart: unless-stopped

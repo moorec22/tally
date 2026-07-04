@@ -95,3 +95,55 @@ For managed Docker platforms, provide `RAILS_MASTER_KEY` and either the
 `POSTGRES_*` variables used by `compose.yaml` or `DATABASE_URL`. If you use
 separate databases for Solid Cache, Solid Queue, or Solid Cable, set
 `CACHE_DATABASE_URL`, `QUEUE_DATABASE_URL`, and `CABLE_DATABASE_URL`.
+
+### Google Cloud Run
+
+The production image listens on Cloud Run's default `PORT=8080`.
+
+Recommended runtime services:
+
+- Cloud SQL for PostgreSQL
+- Secret Manager for `RAILS_MASTER_KEY` and database credentials
+- Google Cloud Storage for Active Storage uploads
+
+Set these environment variables for Cloud Run:
+
+```sh
+APP_HOST=tally.example.com
+DB_PREPARE_ON_BOOT=false
+GOOGLE_CLOUD_STORAGE_BUCKET=your-tally-uploads-bucket
+POSTGRES_DB=tally_production
+POSTGRES_HOST=/cloudsql/PROJECT_ID:REGION:INSTANCE
+POSTGRES_PASSWORD=<secret>
+POSTGRES_USER=tally
+RAILS_MASTER_KEY=<secret>
+SOLID_QUEUE_IN_PUMA=true
+```
+
+If you keep Solid Cache, Solid Queue, and Solid Cable in separate databases,
+also set:
+
+```sh
+CACHE_DATABASE_URL=postgres://USER:PASSWORD@HOST:5432/tally_production_cache
+QUEUE_DATABASE_URL=postgres://USER:PASSWORD@HOST:5432/tally_production_queue
+CABLE_DATABASE_URL=postgres://USER:PASSWORD@HOST:5432/tally_production_cable
+```
+
+Run migrations as a deploy step or Cloud Run Job before sending traffic to a
+new revision:
+
+```sh
+bin/rails db:prepare
+```
+
+Attach the Cloud SQL instance when deploying the service:
+
+```sh
+gcloud run deploy tally \
+  --image IMAGE_URL \
+  --add-cloudsql-instances PROJECT_ID:REGION:INSTANCE \
+  --set-env-vars DB_PREPARE_ON_BOOT=false,SOLID_QUEUE_IN_PUMA=true
+```
+
+Grant the Cloud Run service account permission to access the Cloud SQL instance
+and the configured Storage bucket.
