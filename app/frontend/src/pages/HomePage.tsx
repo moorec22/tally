@@ -235,16 +235,6 @@ function isCountedValue(value: string) {
   return COUNTED_VALUE_PATTERN.test(value.trim())
 }
 
-function sortInventoryItems(items: InventoryItem[]) {
-  return [...items].sort((firstItem, secondItem) => {
-    const nameComparison = presentText(firstItem.name).localeCompare(
-      presentText(secondItem.name),
-    )
-
-    return nameComparison || firstItem.id - secondItem.id
-  })
-}
-
 export default function HomePage() {
   const storedInventoryDraft = useMemo(() => readStoredInventoryDraft(), [])
   const [loadState, setLoadState] = useState<ItemsLoadState>({
@@ -539,7 +529,7 @@ export default function HomePage() {
 
       return {
         status: "loaded",
-        items: sortInventoryItems([...currentLoadState.items, item]),
+        items: sortInventoryItems([...currentLoadState.items, item], inventorySort),
       }
     })
   }
