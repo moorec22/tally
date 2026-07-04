@@ -17,7 +17,7 @@ class SessionsController < ApplicationController
 
       render json: { account: account_presenter.as_json }
     else
-      render json: { error: "Try another email address or password." }, status: :unauthorized
+      render json: { error: "Invalid email/password" }, status: :unauthorized
     end
   end
 

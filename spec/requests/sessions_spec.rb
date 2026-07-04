@@ -53,7 +53,7 @@ RSpec.describe "Sessions", type: :request do
       }
 
       expect(response).to have_http_status(:unauthorized)
-      expect(response.parsed_body).to eq("error" => "Try another email address or password.")
+      expect(response.parsed_body).to eq("error" => "Invalid email/password")
     end
   end
 

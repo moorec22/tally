@@ -65,7 +65,7 @@ export default function SignInPage() {
       })
 
       if (!response.ok) {
-        setError("Try another email address or password.")
+        setError("Invalid email/password")
         return
       }
 
