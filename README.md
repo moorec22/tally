@@ -4,6 +4,12 @@ Tally is a simple web application to manage inventory.
 
 ## Development
 
+Install the project tool versions with `mise` before setting up the app:
+
+```sh
+mise install
+```
+
 The app uses PostgreSQL. By default, Rails connects to local databases named
 `tally_development` and `tally_test` using your local Postgres user.
 
@@ -19,12 +25,24 @@ Optional environment variables:
 Set up the app:
 
 ```sh
-bundle install
-bin/rails db:prepare
+mise exec -- bin/setup --skip-server
+```
+
+Run the app locally:
+
+```sh
+mise exec -- bin/dev
+```
+
+Rails will start on <http://localhost:3000> and Vite will serve frontend assets
+alongside it. To use a different Rails port, pass it through to `bin/dev`:
+
+```sh
+mise exec -- bin/dev -p 3001
 ```
 
 Run the test suite:
 
 ```sh
-bundle exec rspec
+mise exec -- bundle exec rspec
 ```
