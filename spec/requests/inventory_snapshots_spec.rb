@@ -1,6 +1,27 @@
 require "rails_helper"
 
 RSpec.describe "Inventory snapshots", type: :request do
+  let(:user) { User.create!(email_address: "owner@example.com", password: "password") }
+
+  before do
+    sign_in_as(user)
+  end
+
+  describe "authentication" do
+    it "requires an authenticated account" do
+      delete session_path
+
+      post bulk_inventory_snapshots_path, params: {
+        inventory_snapshots: [
+          { item_id: 123_456, value: 1 }
+        ]
+      }
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.parsed_body).to eq("error" => "Authentication required")
+    end
+  end
+
   describe "POST /api/v1/inventory_snapshots/bulk" do
     it "creates multiple snapshots and returns the presented snapshots" do
       paper = Item.create!(name: "Printer Paper")

@@ -1,6 +1,7 @@
 import HomePage from "./pages/HomePage"
 import ItemDetailPage from "./pages/ItemDetailPage"
 import NotFoundPage from "./pages/NotFoundPage"
+import SignInPage from "./pages/SignInPage"
 
 const itemPathPattern = /^\/items\/([^/]+)\/?$/
 
@@ -13,6 +14,10 @@ export default function App() {
 
   if (window.location.pathname === "/") {
     return <HomePage />
+  }
+
+  if (window.location.pathname === "/sign-in") {
+    return <SignInPage />
   }
 
   return <NotFoundPage />

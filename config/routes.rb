@@ -2,6 +2,8 @@ Rails.application.routes.draw do
   root "home#index"
 
   scope "/api/v1" do
+    resource :session, only: [ :show, :create, :destroy ]
+
     resources :inventory_snapshots, only: [] do
       collection do
         post :bulk
@@ -11,6 +13,7 @@ Rails.application.routes.draw do
     resources :items, only: [ :index, :show, :create, :update ]
   end
 
+  get "/sign-in", to: "home#index"
   get "/items/:id", to: "home#index"
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

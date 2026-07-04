@@ -1,6 +1,23 @@
 require "rails_helper"
 
 RSpec.describe "Items", type: :request do
+  let(:user) { User.create!(email_address: "owner@example.com", password: "password") }
+
+  before do
+    sign_in_as(user)
+  end
+
+  describe "authentication" do
+    it "requires an authenticated account" do
+      delete session_path
+
+      get items_path
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.parsed_body).to eq("error" => "Authentication required")
+    end
+  end
+
   describe "GET /api/v1/items" do
     it "returns all items with their latest snapshot values ordered by name and id" do
       markers = Item.create!(name: "Markers", category: "Office", unit: "boxes")
