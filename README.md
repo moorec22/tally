@@ -1,149 +1,123 @@
 # Tally
 
-Tally is a simple web application to manage inventory.
+Tally is a small inventory tracking app. It is built as a static Next.js site
+with a Cloudflare Worker API and Cloudflare D1 for persistence.
 
-## Accounts
+## Architecture
 
-Tally requires an account to access inventory pages and JSON API endpoints. For
-now, all signed-in accounts manage the same shared inventory; items and inventory
-snapshots are not scoped to individual users.
+The browser never connects to D1 directly. All database reads and writes go
+through the Worker:
 
-There is no public sign-up page yet. Accounts are created manually by an
-operator, and users sign in at `/sign-in`.
-
-### Create an account in the console
-
-Start a Rails console:
-
-```sh
-mise exec -- bin/rails console
+```text
+Browser -> Cloudflare Access -> Worker API -> D1 binding
 ```
 
-Create the account:
+Cloudflare Access protects the app and API at the edge. The Worker also
+validates the Access JWT before serving `/api/*`, so D1 is only reachable from
+trusted server-side Worker code.
 
-```ruby
-User.create!(
-  email_address: "owner@example.com",
-  password: "replace-with-a-secure-password"
-)
-```
+## Local Setup
 
-## Development
-
-Install the project tool versions with `mise` before setting up the app:
+Install tool versions:
 
 ```sh
 mise install
 ```
 
-The app uses PostgreSQL. By default, Rails connects to local databases named
-`tally_development` and `tally_test` using your local Postgres user.
-
-Optional environment variables:
-
-- `POSTGRES_HOST`
-- `POSTGRES_PORT`
-- `POSTGRES_USER`
-- `POSTGRES_PASSWORD`
-- `POSTGRES_DB`
-- `POSTGRES_TEST_DB`
-
-Set up the app:
+Install JavaScript dependencies:
 
 ```sh
-mise exec -- bin/setup --skip-server
+mise exec -- yarn install
 ```
 
-Run the app locally:
+Create a local D1 database and apply migrations:
 
 ```sh
-mise exec -- bin/dev
+mise exec -- yarn wrangler d1 create tally
+mise exec -- yarn wrangler d1 migrations apply tally --local
 ```
 
-Rails will start on <http://localhost:3000> and Vite will serve frontend assets
-alongside it. To use a different Rails port, pass it through to `bin/dev`:
+For local development, create `.dev.vars` with a bypass email:
 
 ```sh
-mise exec -- bin/dev -p 3001
+AUTH_BYPASS_EMAIL=owner@example.com
 ```
 
-Run the test suite:
+Build the static site and run the Worker locally:
 
 ```sh
-mise exec -- bundle exec rspec
+mise exec -- yarn build
+mise exec -- yarn dev
 ```
 
-## Docker
+The app will be available from Wrangler's local URL, usually
+<http://localhost:8787>.
 
-Build the production image:
+For pure frontend iteration, run:
 
 ```sh
-docker build -t tally .
+mise exec -- yarn next:dev
 ```
 
-Run the app and PostgreSQL with Docker Compose:
+The API is not served by `next dev`; use `yarn dev` when testing D1-backed
+behavior.
+
+## Cloudflare Setup
+
+1. Create a D1 database named `tally`.
+2. Replace `database_id` in `wrangler.toml` with the D1 database ID.
+3. Apply migrations:
+
+   ```sh
+   mise exec -- yarn wrangler d1 migrations apply tally --remote
+   ```
+
+4. Create a Cloudflare Access self-hosted application for the production domain.
+5. Restrict the Access policy to exact approved emails or a small Access group.
+6. Set Worker variables:
+
+   - `CF_ACCESS_TEAM_DOMAIN`
+   - `CF_ACCESS_AUD`
+
+7. Do not put Cloudflare API tokens, D1 REST credentials, or database secrets in
+   frontend code.
+
+Deploy:
 
 ```sh
-RAILS_MASTER_KEY=$(cat config/master.key) POSTGRES_PASSWORD=replace-with-a-secure-password docker compose up --build
+mise exec -- yarn build
+mise exec -- yarn deploy
 ```
 
-The app will be available at <http://localhost:3000>. Compose stores uploaded
-files in the `tally_storage` volume and PostgreSQL data in the `tally_postgres`
-volume.
+## Data Migration From Rails
 
-For managed Docker platforms, provide `RAILS_MASTER_KEY` and either the
-`POSTGRES_*` variables used by `compose.yaml` or `DATABASE_URL`. If you use
-separate databases for Solid Cache, Solid Queue, or Solid Cable, set
-`CACHE_DATABASE_URL`, `QUEUE_DATABASE_URL`, and `CABLE_DATABASE_URL`.
+Export the Rails/Postgres data to SQL or CSV with preserved `id`, `created_at`,
+and `updated_at` values for:
 
-### Google Cloud Run
+- `items`
+- `inventory_snapshots`
 
-The production image listens on Cloud Run's default `PORT=8080`.
+Load the data into D1 after applying `migrations/0001_initial.sql`. Preserve
+item IDs so existing `/items/:id` URLs continue to work.
 
-Recommended runtime services:
+The old Rails `users` and `sessions` tables are not migrated. Authentication is
+handled by Cloudflare Access.
 
-- Cloud SQL for PostgreSQL
-- Secret Manager for `RAILS_MASTER_KEY` and database credentials
-- Google Cloud Storage for Active Storage uploads
+## Development
 
-Set these environment variables for Cloud Run:
+Run checks:
 
 ```sh
-APP_HOST=tally.example.com
-DB_PREPARE_ON_BOOT=false
-GOOGLE_CLOUD_STORAGE_BUCKET=your-tally-uploads-bucket
-POSTGRES_DB=tally_production
-POSTGRES_HOST=/cloudsql/PROJECT_ID:REGION:INSTANCE
-POSTGRES_PASSWORD=<secret>
-POSTGRES_USER=tally
-RAILS_MASTER_KEY=<secret>
-SOLID_QUEUE_IN_PUMA=true
+mise exec -- yarn typecheck
+mise exec -- yarn test
+mise exec -- yarn build
 ```
 
-If you keep Solid Cache, Solid Queue, and Solid Cable in separate databases,
-also set:
+The public API remains:
 
-```sh
-CACHE_DATABASE_URL=postgres://USER:PASSWORD@HOST:5432/tally_production_cache
-QUEUE_DATABASE_URL=postgres://USER:PASSWORD@HOST:5432/tally_production_queue
-CABLE_DATABASE_URL=postgres://USER:PASSWORD@HOST:5432/tally_production_cable
-```
-
-Run migrations as a deploy step or Cloud Run Job before sending traffic to a
-new revision:
-
-```sh
-bin/rails db:prepare
-```
-
-Attach the Cloud SQL instance when deploying the service:
-
-```sh
-gcloud run deploy tally \
-  --image IMAGE_URL \
-  --add-cloudsql-instances PROJECT_ID:REGION:INSTANCE \
-  --set-env-vars DB_PREPARE_ON_BOOT=false,SOLID_QUEUE_IN_PUMA=true
-```
-
-Grant the Cloud Run service account permission to access the Cloud SQL instance
-and the configured Storage bucket.
+- `GET /api/v1/session`
+- `GET /api/v1/items`
+- `GET /api/v1/items/:id`
+- `POST /api/v1/items`
+- `PATCH /api/v1/items/:id`
+- `POST /api/v1/inventory_snapshots/bulk`

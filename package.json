@@ -2,8 +2,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build",
-    "dev": "vite --host 0.0.0.0",
+    "build": "next build",
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "next:dev": "next dev --hostname 0.0.0.0",
     "test": "vitest run --config vitest.config.ts",
     "typecheck": "tsc --noEmit"
   },
@@ -12,21 +14,24 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^9.0.1",
     "@mui/material": "^9.0.1",
+    "jose": "6.2.3",
+    "next": "16.2.10",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "5.20260719.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
+    "@types/node": "26.1.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@vitejs/plugin-react": "^4.3.4",
     "jsdom": "25.0.1",
     "typescript": "^5.8.0",
     "vite": "6.4.3",
-    "vite-plugin-ruby": "^5.2.0",
-    "vitest": "4.1.8"
+    "vitest": "4.1.8",
+    "wrangler": "4.112.0"
   },
   "resolutions": {
     "form-data": "4.0.6",

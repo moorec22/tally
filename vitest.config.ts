@@ -5,7 +5,7 @@ export default defineConfig({
   cacheDir: "node_modules/.vite/frontend-vitest",
   test: {
     environment: "jsdom",
-    include: ["tests/frontend/**/*.test.tsx"],
+    include: ["tests/frontend/**/*.test.tsx", "tests/worker/**/*.test.ts"],
     setupFiles: ["tests/frontend/support/setup.ts"],
   },
 })

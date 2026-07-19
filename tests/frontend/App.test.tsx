@@ -1,18 +1,18 @@
 import { screen } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
-import App from "../../app/frontend/src/App"
+import App from "../../src/App"
 import { renderWithTheme } from "./support/renderWithTheme"
 
-vi.mock("../../app/frontend/src/pages/HomePage", () => ({
+vi.mock("../../src/screens/HomePage", () => ({
   default: () => <div>Home page</div>,
 }))
 
-vi.mock("../../app/frontend/src/pages/ItemDetailPage", () => ({
+vi.mock("../../src/screens/ItemDetailPage", () => ({
   default: ({ itemId }: { itemId: string }) => <div>Item page {itemId}</div>,
 }))
 
-vi.mock("../../app/frontend/src/pages/NotFoundPage", () => ({
+vi.mock("../../src/screens/NotFoundPage", () => ({
   default: () => <div>Not found page</div>,
 }))
 
@@ -21,27 +21,27 @@ function setPathname(pathname: string) {
 }
 
 describe("App", () => {
-  it("renders the home page at the root path", () => {
+  it("renders the home page at the root path", async () => {
     setPathname("/")
 
     renderWithTheme(<App />)
 
-    expect(screen.getByText("Home page")).toBeInTheDocument()
+    expect(await screen.findByText("Home page")).toBeInTheDocument()
   })
 
-  it("renders the item page with the captured item id", () => {
+  it("renders the item page with the captured item id", async () => {
     setPathname("/items/42")
 
     renderWithTheme(<App />)
 
-    expect(screen.getByText("Item page 42")).toBeInTheDocument()
+    expect(await screen.findByText("Item page 42")).toBeInTheDocument()
   })
 
-  it("renders the not found page for unknown paths", () => {
+  it("renders the not found page for unknown paths", async () => {
     setPathname("/somewhere-else")
 
     renderWithTheme(<App />)
 
-    expect(screen.getByText("Not found page")).toBeInTheDocument()
+    expect(await screen.findByText("Not found page")).toBeInTheDocument()
   })
 })

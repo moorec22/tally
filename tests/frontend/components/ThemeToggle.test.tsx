@@ -2,8 +2,8 @@ import { fireEvent, screen } from "@testing-library/react"
 import { useTheme } from "@mui/material/styles"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { THEME_MODE_STORAGE_KEY } from "../../../app/frontend/src/components/AppThemeProvider"
-import ThemeToggle from "../../../app/frontend/src/components/ThemeToggle"
+import { THEME_MODE_STORAGE_KEY } from "../../../src/components/AppThemeProvider"
+import ThemeToggle from "../../../src/components/ThemeToggle"
 import { renderWithTheme } from "../support/renderWithTheme"
 
 function ThemeModeStatus() {

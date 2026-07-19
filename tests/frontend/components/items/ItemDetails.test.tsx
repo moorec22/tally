@@ -1,8 +1,8 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
-import ItemDetails from "../../../../app/frontend/src/components/items/ItemDetails"
-import type { InventoryItem } from "../../../../app/frontend/src/types/inventory"
+import ItemDetails from "../../../../src/components/items/ItemDetails"
+import type { InventoryItem } from "../../../../src/types/inventory"
 import { renderWithTheme } from "../../support/renderWithTheme"
 
 const countedItem: InventoryItem = {
