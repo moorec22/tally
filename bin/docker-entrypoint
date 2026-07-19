@@ -1,9 +1,0 @@
-#!/bin/bash -e
-
-# If running the rails server then create or migrate existing database.
-# Set DB_PREPARE_ON_BOOT=false when migrations are run by a deploy job.
-if [ "${DB_PREPARE_ON_BOOT:-true}" != "false" ] && [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
-  ./bin/rails db:prepare
-fi
-
-exec "${@}"

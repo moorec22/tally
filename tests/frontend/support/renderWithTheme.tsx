@@ -1,7 +1,7 @@
 import type { ReactElement } from "react"
 import { render, type RenderOptions } from "@testing-library/react"
 
-import { AppThemeProvider } from "../../../app/frontend/src/components/AppThemeProvider"
+import { AppThemeProvider } from "../../../src/components/AppThemeProvider"
 
 export function renderWithTheme(
   ui: ReactElement,

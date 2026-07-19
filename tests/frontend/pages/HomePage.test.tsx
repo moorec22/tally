@@ -1,8 +1,8 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import HomePage from "../../../app/frontend/src/pages/HomePage"
-import type { InventoryItem } from "../../../app/frontend/src/types/inventory"
+import HomePage from "../../../src/screens/HomePage"
+import type { InventoryItem } from "../../../src/types/inventory"
 import { renderWithTheme } from "../support/renderWithTheme"
 
 const items: InventoryItem[] = [
@@ -97,9 +97,6 @@ function rowNamesInOrder(expectedNames: string[]) {
 
 describe("HomePage", () => {
   afterEach(() => {
-    document
-      .querySelector('meta[name="csrf-token"]')
-      ?.remove()
     window.localStorage.clear()
     vi.unstubAllGlobals()
   })
@@ -467,10 +464,6 @@ describe("HomePage", () => {
   })
 
   it("creates an item and renders it in the inventory list", async () => {
-    const csrfMeta = document.createElement("meta")
-    csrfMeta.setAttribute("name", "csrf-token")
-    csrfMeta.setAttribute("content", "secure-token")
-    document.head.appendChild(csrfMeta)
     const createdItem: InventoryItem = {
       id: 45,
       name: "Label Sheets",
@@ -534,7 +527,7 @@ describe("HomePage", () => {
             },
           }),
           headers: expect.objectContaining({
-            "X-CSRF-Token": "secure-token",
+            "X-Requested-With": "XMLHttpRequest",
           }),
           method: "POST",
         }),
@@ -789,10 +782,6 @@ describe("HomePage", () => {
   })
 
   it("confirms inventory by posting a batch payload and updating displayed quantities", async () => {
-    const csrfMeta = document.createElement("meta")
-    csrfMeta.setAttribute("name", "csrf-token")
-    csrfMeta.setAttribute("content", "secure-token")
-    document.head.appendChild(csrfMeta)
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce({
@@ -839,7 +828,7 @@ describe("HomePage", () => {
             ],
           }),
           headers: expect.objectContaining({
-            "X-CSRF-Token": "secure-token",
+            "X-Requested-With": "XMLHttpRequest",
           }),
           method: "POST",
         }),

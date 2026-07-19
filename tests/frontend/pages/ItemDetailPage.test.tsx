@@ -1,8 +1,8 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import ItemDetailPage from "../../../app/frontend/src/pages/ItemDetailPage"
-import type { InventoryItem } from "../../../app/frontend/src/types/inventory"
+import ItemDetailPage from "../../../src/screens/ItemDetailPage"
+import type { InventoryItem } from "../../../src/types/inventory"
 import { renderWithTheme } from "../support/renderWithTheme"
 
 const item: InventoryItem = {
@@ -19,9 +19,6 @@ const item: InventoryItem = {
 
 describe("ItemDetailPage", () => {
   afterEach(() => {
-    document
-      .querySelector('meta[name="csrf-token"]')
-      ?.remove()
     vi.unstubAllGlobals()
   })
 
@@ -49,10 +46,6 @@ describe("ItemDetailPage", () => {
   })
 
   it("patches item edits and refreshes the loaded item", async () => {
-    const csrfMeta = document.createElement("meta")
-    csrfMeta.setAttribute("name", "csrf-token")
-    csrfMeta.setAttribute("content", "secure-token")
-    document.head.appendChild(csrfMeta)
     const updatedItem: InventoryItem = {
       ...item,
       category: "Warehouse",
@@ -104,7 +97,7 @@ describe("ItemDetailPage", () => {
           headers: expect.objectContaining({
             Accept: "application/json",
             "Content-Type": "application/json",
-            "X-CSRF-Token": "secure-token",
+            "X-Requested-With": "XMLHttpRequest",
           }),
           body: JSON.stringify({
             item: {
