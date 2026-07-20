@@ -7,7 +7,7 @@ assets = { directory = "out", binding = "ASSETS", run_worker_first = ["/api/*"] 
 [[d1_databases]]
 binding = "DB"
 database_name = "tally"
-database_id = "replace-with-d1-database-id"
+database_id = "9580e1f4-1b37-40f8-983b-60d91816bf22"
 
 [vars]
 # Set these for production in Cloudflare, not in frontend code.
