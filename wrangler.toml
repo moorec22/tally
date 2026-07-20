@@ -9,7 +9,5 @@ binding = "DB"
 database_name = "tally"
 database_id = "replace-with-d1-database-id"
 
-[vars]
-# Set these for production in Cloudflare, not in frontend code.
-CF_ACCESS_TEAM_DOMAIN = "replace-with-team.cloudflareaccess.com"
-CF_ACCESS_AUD = "replace-with-access-aud"
+[secrets]
+required = ["CF_ACCESS_TEAM_DOMAIN", "CF_ACCESS_AUD"]

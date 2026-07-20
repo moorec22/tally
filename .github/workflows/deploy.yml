@@ -1,0 +1,62 @@
+name: Deploy to Cloudflare
+
+on:
+  push:
+    branches: [ production ]
+  workflow_dispatch:
+
+concurrency:
+  group: cloudflare-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy production
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up mise
+        uses: jdx/mise-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install JavaScript dependencies
+        run: mise exec -- yarn install --frozen-lockfile
+
+      - name: Typecheck
+        run: mise exec -- yarn typecheck
+
+      - name: Run tests
+        run: mise exec -- yarn test
+
+      - name: Build static site
+        run: mise exec -- yarn build
+
+      - name: Validate Cloudflare configuration
+        run: |
+          if grep -q "replace-with-d1-database-id" wrangler.toml; then
+            echo "Replace database_id in wrangler.toml with the production D1 database ID before deploying."
+            exit 1
+          fi
+
+      - name: Apply D1 migrations
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 migrations apply tally --remote --yes
+
+      - name: Deploy Worker and static assets
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
