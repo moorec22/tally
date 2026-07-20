@@ -7,8 +7,7 @@ assets = { directory = "out", binding = "ASSETS", run_worker_first = ["/api/*"] 
 [[d1_databases]]
 binding = "DB"
 database_name = "tally"
-# GitHub Actions replaces this placeholder with CLOUDFLARE_D1_DATABASE_ID.
-database_id = "replace-with-d1-database-id"
+database_id = "9580e1f4-1b37-40f8-983b-60d91816bf22"
 
 [secrets]
 required = ["CF_ACCESS_TEAM_DOMAIN", "CF_ACCESS_AUD"]
