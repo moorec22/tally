@@ -6,7 +6,7 @@
 
 # Ignore all environment files.
 /.env*
-/.dev.vars
+/.dev.vars*
 
 # Ignore build output and package installs.
 /.next
@@ -16,3 +16,4 @@
 
 # Ignore local Wrangler state.
 /.wrangler
+/.wrangler.deploy.toml

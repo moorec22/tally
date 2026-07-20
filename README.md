@@ -65,8 +65,9 @@ behavior.
 ## Cloudflare Setup
 
 1. Create a D1 database named `tally`.
-2. Replace `database_id` in `wrangler.toml` with the D1 database ID.
-3. Apply migrations:
+2. Keep the `DB` binding name and `tally` database name in `wrangler.toml` in
+   sync with Cloudflare.
+3. Apply the D1 migrations once during initial setup:
 
    ```sh
    mise exec -- yarn wrangler d1 migrations apply tally --remote
@@ -74,10 +75,16 @@ behavior.
 
 4. Create a Cloudflare Access self-hosted application for the production domain.
 5. Restrict the Access policy to exact approved emails or a small Access group.
-6. Set Worker variables:
+6. Set Worker secrets for the Access values:
 
-   - `CF_ACCESS_TEAM_DOMAIN`
-   - `CF_ACCESS_AUD`
+   ```sh
+   mise exec -- yarn wrangler secret put CF_ACCESS_TEAM_DOMAIN
+   mise exec -- yarn wrangler secret put CF_ACCESS_AUD
+   ```
+
+   `CF_ACCESS_TEAM_DOMAIN` is the Access team domain, such as
+   `team-name.cloudflareaccess.com`. `CF_ACCESS_AUD` is the Access application
+   audience tag.
 
 7. Do not put Cloudflare API tokens, D1 REST credentials, or database secrets in
    frontend code.
@@ -88,6 +95,27 @@ Deploy:
 mise exec -- yarn build
 mise exec -- yarn deploy
 ```
+
+## GitHub Actions Deployment
+
+Pushes to the `production` branch deploy to Cloudflare through
+`.github/workflows/deploy.yml`. The workflow typechecks, runs tests, builds the
+static Next.js export, applies any unapplied remote D1 migrations, then runs
+`wrangler deploy` to publish the Worker and `out/` static assets.
+
+Before the workflow can deploy, configure a GitHub `production` environment or
+repository secrets with:
+
+- `CLOUDFLARE_ACCOUNT_ID`
+- `CLOUDFLARE_API_TOKEN`
+
+Also configure this GitHub Actions variable:
+
+- `CLOUDFLARE_D1_DATABASE_ID`
+
+Create the Cloudflare API token from the `Edit Cloudflare Workers` template,
+add D1 edit permission if the template does not include it, and scope it to only
+the Cloudflare account and zone used by Tally.
 
 ## Data Migration From Rails
 

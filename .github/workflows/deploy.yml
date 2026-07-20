@@ -1,0 +1,67 @@
+name: Deploy to Cloudflare
+
+on:
+  push:
+    branches: [ production ]
+  workflow_dispatch:
+
+concurrency:
+  group: cloudflare-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy production
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    env:
+      CLOUDFLARE_D1_DATABASE_ID: ${{ vars.CLOUDFLARE_D1_DATABASE_ID }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up mise
+        uses: jdx/mise-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install JavaScript dependencies
+        run: mise exec -- yarn install --frozen-lockfile
+
+      - name: Typecheck
+        run: mise exec -- yarn typecheck
+
+      - name: Run tests
+        run: mise exec -- yarn test
+
+      - name: Build static site
+        run: mise exec -- yarn build
+
+      - name: Prepare Cloudflare deploy configuration
+        run: |
+          if [ -z "$CLOUDFLARE_D1_DATABASE_ID" ]; then
+            echo "Set CLOUDFLARE_D1_DATABASE_ID as a GitHub Actions variable before deploying."
+            exit 1
+          fi
+
+          cp wrangler.toml .wrangler.deploy.toml
+          perl -0pi -e 's/database_id = "replace-with-d1-database-id"/database_id = "$ENV{CLOUDFLARE_D1_DATABASE_ID}"/' .wrangler.deploy.toml
+
+      - name: Apply D1 migrations
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 migrations apply tally --remote --config .wrangler.deploy.toml
+
+      - name: Deploy Worker and static assets
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --config .wrangler.deploy.toml
