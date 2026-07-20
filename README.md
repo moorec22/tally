@@ -65,8 +65,8 @@ behavior.
 ## Cloudflare Setup
 
 1. Create a D1 database named `tally`.
-2. Keep the `DB` binding name and `tally` database name in `wrangler.toml` in
-   sync with Cloudflare.
+2. Keep the `DB` binding name, `tally` database name, and `database_id` in
+   `wrangler.toml` in sync with Cloudflare.
 3. Apply the D1 migrations once during initial setup:
 
    ```sh
@@ -98,7 +98,7 @@ mise exec -- yarn deploy
 
 ## GitHub Actions Deployment
 
-Pushes to the `production` branch deploy to Cloudflare through
+Pushes to the `main` branch deploy to Cloudflare through
 `.github/workflows/deploy.yml`. The workflow typechecks, runs tests, builds the
 static Next.js export, applies any unapplied remote D1 migrations, then runs
 `wrangler deploy` to publish the Worker and `out/` static assets.
@@ -108,10 +108,6 @@ repository secrets with:
 
 - `CLOUDFLARE_ACCOUNT_ID`
 - `CLOUDFLARE_API_TOKEN`
-
-Also configure this GitHub Actions variable:
-
-- `CLOUDFLARE_D1_DATABASE_ID`
 
 Create the Cloudflare API token from the `Edit Cloudflare Workers` template,
 add D1 edit permission if the template does not include it, and scope it to only
