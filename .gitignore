@@ -16,3 +16,4 @@
 
 # Ignore local Wrangler state.
 /.wrangler
+/.wrangler.deploy.toml

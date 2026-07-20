@@ -65,9 +65,8 @@ behavior.
 ## Cloudflare Setup
 
 1. Create a D1 database named `tally`.
-2. Replace `database_id` in `wrangler.toml` with the production D1 database ID.
-   The `DB` binding name and `tally` database name must stay in sync with the
-   Worker config.
+2. Keep the `DB` binding name and `tally` database name in `wrangler.toml` in
+   sync with Cloudflare.
 3. Apply the D1 migrations once during initial setup:
 
    ```sh
@@ -109,6 +108,10 @@ repository secrets with:
 
 - `CLOUDFLARE_ACCOUNT_ID`
 - `CLOUDFLARE_API_TOKEN`
+
+Also configure this GitHub Actions variable:
+
+- `CLOUDFLARE_D1_DATABASE_ID`
 
 Create the Cloudflare API token from the `Edit Cloudflare Workers` template,
 add D1 edit permission if the template does not include it, and scope it to only
