@@ -130,7 +130,20 @@ export default function ItemCreateDialog({
   }
 
   return (
-    <Dialog fullWidth maxWidth="sm" onClose={onClose} open={open}>
+    <Dialog
+      fullWidth
+      maxWidth="sm"
+      onClose={onClose}
+      open={open}
+      slotProps={{
+        paper: {
+          sx: {
+            m: { xs: 1.5, sm: 4 },
+            maxHeight: { xs: "calc(100% - 24px)", sm: "calc(100% - 64px)" },
+          },
+        },
+      }}
+    >
       <DialogTitle>Add Item</DialogTitle>
       <DialogContent>
         <Stack
@@ -200,13 +213,28 @@ export default function ItemCreateDialog({
           </Stack>
         </Stack>
       </DialogContent>
-      <DialogActions>
-        <Button disabled={isSaving} onClick={onClose}>
+      <DialogActions
+        sx={{
+          flexDirection: { xs: "column-reverse", sm: "row" },
+          gap: { xs: 1, sm: 0 },
+          px: { xs: 3, sm: 2 },
+          pb: { xs: 3, sm: 1 },
+          "& > :not(style) ~ :not(style)": {
+            ml: { xs: 0, sm: 1 },
+          },
+        }}
+      >
+        <Button
+          disabled={isSaving}
+          onClick={onClose}
+          sx={{ width: { xs: "100%", sm: "auto" } }}
+        >
           Cancel
         </Button>
         <Button
           disabled={isSaving}
           form="create-item-form"
+          sx={{ width: { xs: "100%", sm: "auto" } }}
           type="submit"
           variant="contained"
         >

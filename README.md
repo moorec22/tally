@@ -62,6 +62,25 @@ mise exec -- yarn next:dev
 The API is not served by `next dev`; use `yarn dev` when testing D1-backed
 behavior.
 
+For isolated component testing at mobile, tablet, and desktop widths, run:
+
+```sh
+mise exec -- yarn storybook
+```
+
+Storybook is available at <http://localhost:6006>. Run its browser-backed story
+tests with:
+
+```sh
+mise exec -- yarn test:storybook
+```
+
+If Playwright has not downloaded Chromium on your machine yet, install it once:
+
+```sh
+mise exec -- yarn playwright install chromium
+```
+
 ## Cloudflare Setup
 
 1. Create a D1 database named `tally`.
@@ -134,7 +153,9 @@ Run checks:
 ```sh
 mise exec -- yarn typecheck
 mise exec -- yarn test
+mise exec -- yarn test:storybook
 mise exec -- yarn build
+mise exec -- yarn build-storybook
 ```
 
 The public API remains:

@@ -16,9 +16,27 @@ export default function PageShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <Box component="main" sx={{ minHeight: "100vh", py: { xs: 6, md: 10 } }}>
-      <Container maxWidth="md">
-        <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end", mb: 2 }}>
+    <Box
+      component="main"
+      sx={{
+        minHeight: "100vh",
+        py: { xs: 2, sm: 4, md: 10 },
+      }}
+    >
+      <Container
+        maxWidth="md"
+        sx={{
+          px: { xs: 1.5, sm: 3 },
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            justifyContent: "flex-end",
+            mb: { xs: 1, sm: 2 },
+          }}
+        >
           <Tooltip title="Sign out">
             <IconButton
               aria-label="Sign out"

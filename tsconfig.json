@@ -29,6 +29,8 @@
     "incremental": true
   },
   "include": [
+    ".storybook/**/*.ts",
+    ".storybook/**/*.tsx",
     "app/**/*.ts",
     "app/**/*.tsx",
     "next-env.d.ts",
@@ -37,6 +39,7 @@
     "tests/frontend/**/*.ts",
     "tests/frontend/**/*.tsx",
     "tests/worker/**/*.ts",
+    "vitest.storybook.config.ts",
     "vitest.config.ts",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"

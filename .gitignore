@@ -11,6 +11,7 @@
 # Ignore build output and package installs.
 /.next
 /out
+/storybook-static
 /node_modules
 /tsconfig.tsbuildinfo
 
