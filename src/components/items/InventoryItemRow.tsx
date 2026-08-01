@@ -170,10 +170,10 @@ export default function InventoryItemRow({
             alignItems: { sm: "center" },
             color: "text.primary",
             display: "grid",
-            gap: 2,
+            gap: { xs: 1.25, sm: 2 },
             gridTemplateColumns,
-            px: 3,
-            py: 2,
+            px: { xs: 2, sm: 3 },
+            py: { xs: 2.25, sm: 2 },
           }}
         >
           {rowContent}
@@ -185,10 +185,10 @@ export default function InventoryItemRow({
           sx={{
             color: "text.primary",
             display: "grid",
-            gap: 2,
+            gap: { xs: 1, sm: 2 },
             gridTemplateColumns,
-            px: 3,
-            py: 2,
+            px: { xs: 2, sm: 3 },
+            py: { xs: 2.25, sm: 2 },
             transition: "background-color 120ms ease",
             "&:hover": {
               bgcolor: "action.hover",

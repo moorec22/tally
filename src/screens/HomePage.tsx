@@ -555,8 +555,8 @@ export default function HomePage() {
             border: 1,
             borderColor: "divider",
             borderRadius: 2,
-            px: { xs: 3, sm: 5 },
-            py: { xs: 4, sm: 5 },
+            px: { xs: 2, sm: 5 },
+            py: { xs: 3, sm: 5 },
           }}
         >
           <Stack spacing={3}>
@@ -570,7 +570,15 @@ export default function HomePage() {
               </Typography>
             </Box>
 
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <Stack
+              direction={{ xs: "column", md: "row" }}
+              spacing={2}
+              sx={{
+                "& .MuiButton-root": {
+                  minHeight: 48,
+                },
+              }}
+            >
               <TextField
                 fullWidth
                 onChange={(event) => setSearchQuery(event.target.value)}
@@ -588,6 +596,7 @@ export default function HomePage() {
                 value={searchQuery}
               />
               <TextField
+                fullWidth
                 label="Category"
                 onChange={(event) => setSelectedCategory(event.target.value)}
                 select
@@ -596,7 +605,7 @@ export default function HomePage() {
                     displayEmpty: true,
                   },
                 }}
-                sx={{ minWidth: { sm: 220 } }}
+                sx={{ minWidth: { md: 220 } }}
                 value={selectedCategory}
               >
                 {categoryFilterOptions.map((option) => (
@@ -607,7 +616,7 @@ export default function HomePage() {
               </TextField>
               <Button
                 onClick={handleInventoryToggle}
-                sx={{ minWidth: { sm: 160 } }}
+                sx={{ minWidth: { md: 160 }, width: { xs: "100%", md: "auto" } }}
                 variant={isInventoryActive ? "contained" : "outlined"}
               >
                 {isInventoryActive ? "Finish Inventory" : "Start Inventory"}
@@ -615,7 +624,7 @@ export default function HomePage() {
               <Button
                 onClick={() => setIsCreateItemOpen(true)}
                 startIcon={<AddIcon />}
-                sx={{ minWidth: { sm: 140 } }}
+                sx={{ minWidth: { md: 140 }, width: { xs: "100%", md: "auto" } }}
                 variant="contained"
               >
                 Add Item
@@ -624,7 +633,10 @@ export default function HomePage() {
                 <Button
                   color="inherit"
                   onClick={cancelInventorySession}
-                  sx={{ minWidth: { sm: 160 } }}
+                  sx={{
+                    minWidth: { md: 160 },
+                    width: { xs: "100%", md: "auto" },
+                  }}
                   variant="outlined"
                 >
                   Cancel Inventory
@@ -787,9 +799,18 @@ export default function HomePage() {
       </Stack>
       <Dialog
         fullWidth
+        fullScreen={false}
         maxWidth="md"
         onClose={() => setIsReviewOpen(false)}
         open={isReviewOpen}
+        slotProps={{
+          paper: {
+            sx: {
+              m: { xs: 1.5, sm: 4 },
+              maxHeight: { xs: "calc(100% - 24px)", sm: "calc(100% - 64px)" },
+            },
+          },
+        }}
       >
         <DialogTitle>Finish Inventory</DialogTitle>
         <DialogContent>
@@ -857,11 +878,27 @@ export default function HomePage() {
             )}
           </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsReviewOpen(false)}>Cancel</Button>
+        <DialogActions
+          sx={{
+            flexDirection: { xs: "column-reverse", sm: "row" },
+            gap: { xs: 1, sm: 0 },
+            px: { xs: 3, sm: 2 },
+            pb: { xs: 3, sm: 1 },
+            "& > :not(style) ~ :not(style)": {
+              ml: { xs: 0, sm: 1 },
+            },
+          }}
+        >
+          <Button
+            onClick={() => setIsReviewOpen(false)}
+            sx={{ width: { xs: "100%", sm: "auto" } }}
+          >
+            Cancel
+          </Button>
           <Button
             disabled={isSubmittingInventory}
             onClick={confirmInventory}
+            sx={{ width: { xs: "100%", sm: "auto" } }}
             variant="contained"
           >
             Confirm
@@ -878,6 +915,13 @@ export default function HomePage() {
         maxWidth="xs"
         onClose={() => setIsCancelInventoryOpen(false)}
         open={isCancelInventoryOpen}
+        slotProps={{
+          paper: {
+            sx: {
+              m: { xs: 1.5, sm: 4 },
+            },
+          },
+        }}
       >
         <DialogTitle>Cancel Inventory?</DialogTitle>
         <DialogContent>
@@ -885,11 +929,27 @@ export default function HomePage() {
             This will discard the counts and notes entered for this inventory session.
           </Typography>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsCancelInventoryOpen(false)}>Keep Inventory</Button>
+        <DialogActions
+          sx={{
+            flexDirection: { xs: "column-reverse", sm: "row" },
+            gap: { xs: 1, sm: 0 },
+            px: { xs: 3, sm: 2 },
+            pb: { xs: 3, sm: 1 },
+            "& > :not(style) ~ :not(style)": {
+              ml: { xs: 0, sm: 1 },
+            },
+          }}
+        >
+          <Button
+            onClick={() => setIsCancelInventoryOpen(false)}
+            sx={{ width: { xs: "100%", sm: "auto" } }}
+          >
+            Keep Inventory
+          </Button>
           <Button
             color="error"
             onClick={confirmCancelInventorySession}
+            sx={{ width: { xs: "100%", sm: "auto" } }}
             variant="contained"
           >
             Cancel Inventory

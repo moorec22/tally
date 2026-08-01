@@ -22,8 +22,8 @@ export default function StatusPanel({
         border: 1,
         borderColor: "divider",
         borderRadius: 2,
-        px: { xs: 3, sm: 5 },
-        py: { xs: 4, sm: 6 },
+        px: { xs: 2, sm: 5 },
+        py: { xs: 3, sm: 6 },
       }}
     >
       <Stack spacing={2} sx={{ alignItems: "flex-start" }}>

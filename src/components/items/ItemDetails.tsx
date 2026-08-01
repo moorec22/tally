@@ -137,7 +137,7 @@ export default function ItemDetails({ item, onSave }: ItemDetailsProps) {
         overflow: "hidden",
       }}
     >
-      <Box sx={{ px: { xs: 3, sm: 5 }, py: { xs: 4, sm: 5 } }}>
+      <Box sx={{ px: { xs: 2, sm: 5 }, py: { xs: 3, sm: 5 } }}>
         <Stack spacing={3}>
           <Stack
             direction={{ xs: "column", sm: "row" }}
@@ -150,13 +150,18 @@ export default function ItemDetails({ item, onSave }: ItemDetailsProps) {
             <SectionLabel icon={<Inventory2OutlinedIcon color="primary" />}>
               Item detail
             </SectionLabel>
-            <Stack direction="row" spacing={1}>
+            <Stack
+              direction={{ xs: "column-reverse", sm: "row" }}
+              spacing={1}
+              sx={{ width: { xs: "100%", sm: "auto" } }}
+            >
               {isEditing ? (
                 <>
                   <Button
                     disabled={isSaving}
                     onClick={cancelEditing}
                     startIcon={<CloseIcon />}
+                    sx={{ width: { xs: "100%", sm: "auto" } }}
                     type="button"
                     variant="text"
                   >
@@ -166,6 +171,7 @@ export default function ItemDetails({ item, onSave }: ItemDetailsProps) {
                     disabled={isSaving}
                     onClick={saveChanges}
                     startIcon={<SaveIcon />}
+                    sx={{ width: { xs: "100%", sm: "auto" } }}
                     type="button"
                     variant="contained"
                   >
@@ -174,12 +180,18 @@ export default function ItemDetails({ item, onSave }: ItemDetailsProps) {
                 </>
               ) : (
                 <>
-                  <Button href="/" startIcon={<ArrowBackIcon />} variant="text">
+                  <Button
+                    href="/"
+                    startIcon={<ArrowBackIcon />}
+                    sx={{ width: { xs: "100%", sm: "auto" } }}
+                    variant="text"
+                  >
                     Inventory
                   </Button>
                   <Button
                     onClick={() => setIsEditing(true)}
                     startIcon={<EditIcon />}
+                    sx={{ width: { xs: "100%", sm: "auto" } }}
                     type="button"
                     variant="contained"
                   >
@@ -191,7 +203,15 @@ export default function ItemDetails({ item, onSave }: ItemDetailsProps) {
           </Stack>
 
           <Box>
-            <Typography component="h1" sx={{ fontWeight: 700 }} variant="h3">
+            <Typography
+              component="h1"
+              sx={{
+                fontSize: { xs: "2rem", sm: "3rem" },
+                fontWeight: 700,
+                overflowWrap: "anywhere",
+              }}
+              variant="h3"
+            >
               {itemName}
             </Typography>
             {isEditing ? (
@@ -244,13 +264,21 @@ export default function ItemDetails({ item, onSave }: ItemDetailsProps) {
 
       <Divider />
 
-      <Box sx={{ px: { xs: 3, sm: 5 }, py: { xs: 4, sm: 5 } }}>
+      <Box sx={{ px: { xs: 2, sm: 5 }, py: { xs: 3, sm: 5 } }}>
         <Stack spacing={3}>
           <Box>
             <Typography color="text.secondary" variant="overline">
               Current quantity
             </Typography>
-            <Typography component="p" sx={{ fontWeight: 700 }} variant="h2">
+            <Typography
+              component="p"
+              sx={{
+                fontSize: { xs: "2.25rem", sm: "3.75rem" },
+                fontWeight: 700,
+                overflowWrap: "anywhere",
+              }}
+              variant="h2"
+            >
               {currentQuantity}
             </Typography>
           </Box>

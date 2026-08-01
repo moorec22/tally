@@ -3,10 +3,13 @@
   "type": "module",
   "scripts": {
     "build": "next build",
+    "build-storybook": "storybook build",
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
     "next:dev": "next dev --hostname 0.0.0.0",
+    "storybook": "storybook dev -p 6006 --host 0.0.0.0",
     "test": "vitest run --config vitest.config.ts",
+    "test:storybook": "vitest --config vitest.storybook.config.ts --project storybook",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -21,13 +24,19 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "5.20260726.1",
+    "@storybook/addon-docs": "10.5.5",
+    "@storybook/addon-vitest": "10.5.5",
+    "@storybook/nextjs-vite": "10.5.5",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.2",
     "@types/node": "26.1.1",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.0.0",
+    "@vitest/browser-playwright": "4.1.10",
     "jsdom": "29.1.1",
+    "playwright": "1.62.1",
+    "storybook": "10.5.5",
     "typescript": "^7.0.2",
     "vite": "8.1.5",
     "vitest": "4.1.10",
