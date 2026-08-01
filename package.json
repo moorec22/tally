@@ -45,6 +45,7 @@
   "resolutions": {
     "form-data": "4.0.6",
     "postcss": "8.5.20",
+    "sharp": "0.35.2",
     "vite": "8.1.5"
   },
   "packageManager": "yarn@1.22.22"
