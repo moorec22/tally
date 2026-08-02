@@ -73,7 +73,7 @@ function integerOrNull(value: string) {
 export default function ItemDetails({ item, onSave }: ItemDetailsProps) {
   const itemName = presentText(item.name)
   const currentQuantity =
-    item.value === null ? "--" : `${item.value}${unitSuffix(item.unit)}`
+    item.value === null ? "--" : `${item.value}${unitSuffix(item.unit, item.value)}`
   const [isEditing, setIsEditing] = useState(false)
   const [formValues, setFormValues] = useState<ItemFormValues>(() =>
     formValuesFromItem(item),

@@ -88,7 +88,7 @@ export default function ReviewInventoryDialog({
                   >
                     <Typography color="text.secondary" sx={{ whiteSpace: "nowrap" }}>
                       Counted: {value}
-                      {unitSuffix(item.unit)}
+                      {unitSuffix(item.unit, value)}
                     </Typography>
                     {note.trim() ? (
                       <Typography

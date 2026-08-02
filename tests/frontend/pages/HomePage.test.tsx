@@ -128,6 +128,27 @@ describe("HomePage", () => {
     )
   })
 
+  it("pluralizes singular units in rendered inventory quantities", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => [
+          {
+            ...items[0],
+            unit: "box",
+            value: 2,
+          },
+        ],
+      }),
+    )
+
+    renderWithTheme(<HomePage />)
+
+    expect(await screen.findByText("2 boxes")).toBeInTheDocument()
+  })
+
   it("filters items by name and category", async () => {
     vi.stubGlobal(
       "fetch",
@@ -779,6 +800,34 @@ describe("HomePage", () => {
     )
     expect(screen.getByRole("button", { name: "Finish Inventory" })).toBeInTheDocument()
     expect(screen.getByLabelText("Counted quantity for Printer Paper")).toHaveValue(24)
+  })
+
+  it("pluralizes singular units in the inventory review dialog", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => [
+          {
+            ...items[0],
+            unit: "tray",
+          },
+        ],
+      }),
+    )
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+    fireEvent.click(screen.getByRole("button", { name: "Start Inventory" }))
+    fireEvent.change(screen.getByLabelText("Counted quantity for Printer Paper"), {
+      target: { value: "3" },
+    })
+    fireEvent.click(screen.getByRole("button", { name: "Finish Inventory" }))
+
+    const dialog = await screen.findByRole("dialog", { name: "Finish Inventory" })
+    expect(within(dialog).getByText("Counted: 3 trays")).toBeInTheDocument()
   })
 
   it("confirms inventory by posting a batch payload and updating displayed quantities", async () => {

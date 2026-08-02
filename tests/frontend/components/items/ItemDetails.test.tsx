@@ -35,6 +35,21 @@ describe("ItemDetails", () => {
     expect(screen.getByText(/2026/)).toBeInTheDocument()
   })
 
+  it("pluralizes singular units when rendering a counted quantity", () => {
+    renderWithTheme(
+      <ItemDetails
+        item={{
+          ...countedItem,
+          unit: "box",
+          value: 2,
+        }}
+        onSave={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByText("2 boxes")).toBeInTheDocument()
+  })
+
   it("renders readable fallbacks for missing item values", () => {
     renderWithTheme(
       <ItemDetails
