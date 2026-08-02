@@ -8,6 +8,12 @@ Cloudflare Worker API and Cloudflare D1 persistence.
 Keep the product practical and easy to maintain: focused React components,
 straightforward Worker handlers, explicit D1 queries, and focused tests.
 
+## Architecture Reference
+
+Read `docs/architecture.md` before changing the D1 data model, Worker API
+contracts, frontend data flow, or folder structure. Keep that document updated
+when architecture-relevant decisions change.
+
 ## Development Guidelines
 
 - Use `mise` for project tooling so commands run with the versions defined in
