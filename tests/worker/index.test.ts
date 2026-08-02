@@ -48,6 +48,10 @@ class MockD1Statement {
   async run() {
     return this.db.run(this.sql, this.params)
   }
+
+  async raw<T extends unknown[]>() {
+    return this.db.raw<T>(this.sql, this.params)
+  }
 }
 
 class MockD1Database {
@@ -90,25 +94,60 @@ class MockD1Database {
   }
 
   all<T>(sql: string, params: unknown[]) {
-    if (sql.includes("SELECT id FROM items WHERE id IN")) {
+    const normalizedSql = this.normalizeSql(sql)
+
+    if (
+      normalizedSql.includes('from "items"') &&
+      normalizedSql.includes('where "items"."id" in')
+    ) {
       return this.items
         .filter((item) => params.includes(item.id))
-        .map((item) => ({ id: item.id })) as T[]
+        .sort((first, second) => first.id - second.id) as T[]
     }
 
-    if (sql.includes("FROM inventory_snapshots") && sql.includes("WHERE id IN")) {
+    if (
+      normalizedSql.includes('from "items"') &&
+      normalizedSql.includes('where "items"."id" = ?')
+    ) {
+      return this.items.filter((item) => item.id === params[0]) as T[]
+    }
+
+    if (normalizedSql.includes('from "items"')) {
+      return [...this.items]
+        .sort((first, second) => {
+          const nameComparison = first.name.localeCompare(second.name)
+
+          return nameComparison === 0 ? first.id - second.id : nameComparison
+        }) as T[]
+    }
+
+    if (
+      normalizedSql.includes('from "inventory_snapshots"') &&
+      normalizedSql.includes('"latest_snapshot_ids"')
+    ) {
+      return this.latestSnapshotsForItemIds(
+        params.filter((param): param is number => Number.isInteger(param)),
+      ) as T[]
+    }
+
+    if (
+      normalizedSql.includes('from "inventory_snapshots"') &&
+      normalizedSql.includes('where "inventory_snapshots"."id" in')
+    ) {
       return this.snapshots
         .filter((snapshot) => params.includes(snapshot.id))
         .sort((first, second) => first.id - second.id) as T[]
     }
 
-    return this.items
-      .map((item) => this.presentedItem(item))
-      .sort((first, second) => {
-        const nameComparison = first.name.localeCompare(second.name)
+    return []
+  }
 
-        return nameComparison === 0 ? first.id - second.id : nameComparison
-      }) as T[]
+  raw<T extends unknown[]>(sql: string, params: unknown[]) {
+    const columns = this.selectedColumns(sql)
+
+    return this.all<Record<string, unknown>>(sql, params).map((row) =>
+      columns.map((column) => row[column]),
+    ) as T[]
   }
 
   first<T>(_sql: string, params: unknown[]) {
@@ -118,7 +157,9 @@ class MockD1Database {
   }
 
   run(sql: string, params: unknown[]) {
-    if (sql.includes("INSERT INTO items")) {
+    const normalizedSql = this.normalizeSql(sql)
+
+    if (normalizedSql.includes('insert into "items"')) {
       const id = Math.max(...this.items.map((item) => item.id), 0) + 1
       this.items.push({
         id,
@@ -135,7 +176,7 @@ class MockD1Database {
       return { meta: { last_row_id: id } }
     }
 
-    if (sql.includes("UPDATE items")) {
+    if (normalizedSql.includes('update "items"')) {
       const id = params[6] as number
       const item = this.items.find((candidate) => candidate.id === id)
 
@@ -151,7 +192,7 @@ class MockD1Database {
       return { meta: {} }
     }
 
-    if (sql.includes("INSERT INTO inventory_snapshots")) {
+    if (normalizedSql.includes('insert into "inventory_snapshots"')) {
       const id = Math.max(...this.snapshots.map((snapshot) => snapshot.id), 0) + 1
       this.snapshots.push({
         id,
@@ -168,14 +209,57 @@ class MockD1Database {
     return { meta: {} }
   }
 
-  private presentedItem(item: ItemRecord) {
-    const latestSnapshot = this.snapshots
-      .filter((snapshot) => snapshot.item_id === item.id)
-      .sort((first, second) => {
-        const dateComparison = second.created_at.localeCompare(first.created_at)
+  private latestSnapshotsForItemIds(itemIds: number[]) {
+    return itemIds
+      .map((itemId) =>
+        this.snapshots
+          .filter((snapshot) => snapshot.item_id === itemId)
+          .sort((first, second) => {
+            const dateComparison = second.created_at.localeCompare(first.created_at)
 
-        return dateComparison === 0 ? second.id - first.id : dateComparison
-      })[0]
+            return dateComparison === 0 ? second.id - first.id : dateComparison
+          })[0],
+      )
+      .filter((snapshot): snapshot is SnapshotRecord => snapshot !== undefined)
+  }
+
+  private normalizeSql(sql: string) {
+    return sql.replace(/\s+/g, " ").trim().toLowerCase()
+  }
+
+  private selectedColumns(sql: string) {
+    const normalizedSql = this.normalizeSql(sql)
+
+    if (
+      normalizedSql.includes('from "items"') &&
+      normalizedSql.includes('select "id" from "items"')
+    ) {
+      return ["id"]
+    }
+
+    if (normalizedSql.includes('from "items"')) {
+      return [
+        "id",
+        "name",
+        "category",
+        "unit",
+        "preferred_source",
+        "low",
+        "high",
+        "created_at",
+        "updated_at",
+      ]
+    }
+
+    if (normalizedSql.includes('from "inventory_snapshots"')) {
+      return ["id", "item_id", "value", "note", "created_at", "updated_at"]
+    }
+
+    return []
+  }
+
+  private presentedItem(item: ItemRecord) {
+    const latestSnapshot = this.latestSnapshotsForItemIds([item.id])[0]
 
     return {
       id: item.id,

@@ -14,7 +14,7 @@ export async function readJsonObject(request: Request) {
   throw jsonResponse({ error: "Expected JSON request body" }, { status: 400 })
 }
 
-export function textOrNull(value: unknown) {
+export function textOrNull(value: unknown): string | null {
   if (typeof value !== "string") {
     return null
   }
@@ -24,7 +24,7 @@ export function textOrNull(value: unknown) {
   return trimmedValue ? trimmedValue : null
 }
 
-export function requiredText(value: unknown) {
+export function requiredText(value: unknown): string | null {
   if (typeof value !== "string") {
     return null
   }
@@ -34,15 +34,15 @@ export function requiredText(value: unknown) {
   return trimmedValue ? trimmedValue : null
 }
 
-export function integerOrNull(value: unknown) {
+export function integerOrNull(value: unknown): number | null {
   if (value === null || value === undefined || value === "") {
     return null
   }
 
-  return Number.isInteger(value) ? value : null
+  return typeof value === "number" && Number.isInteger(value) ? value : null
 }
 
-export function nonNegativeInteger(value: unknown) {
+export function nonNegativeInteger(value: unknown): number | null {
   return typeof value === "number" && Number.isInteger(value) && value >= 0
     ? value
     : null

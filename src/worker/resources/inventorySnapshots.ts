@@ -1,14 +1,10 @@
+import { asc, inArray } from "drizzle-orm"
+import type { BatchItem } from "drizzle-orm/batch"
+
+import type { AppDatabase } from "../db/client"
+import { inventorySnapshots, items } from "../db/schema"
 import { jsonResponse } from "../http"
 import { nonNegativeInteger, readJsonObject } from "../validation"
-
-type SnapshotRow = {
-  id: number
-  item_id: number
-  value: number
-  note: string | null
-  created_at: string
-  updated_at: string
-}
 
 type SnapshotInput = {
   item_id?: unknown
@@ -16,7 +12,7 @@ type SnapshotInput = {
   value?: unknown
 }
 
-export async function createBulkSnapshots(request: Request, db: D1Database) {
+export async function createBulkSnapshots(request: Request, db: AppDatabase) {
   const body = await readJsonObject(request)
   const snapshots = body.inventory_snapshots
 
@@ -54,12 +50,12 @@ export async function createBulkSnapshots(request: Request, db: D1Database) {
   })
 
   if (itemIds.length > 0) {
-    const placeholders = itemIds.map(() => "?").join(", ")
-    const result = await db
-      .prepare(`SELECT id FROM items WHERE id IN (${placeholders})`)
-      .bind(...itemIds)
-      .all<{ id: number }>()
-    const existingItemIds = new Set(result.results.map((item) => item.id))
+    const existingItems = await db
+      .select({ id: items.id })
+      .from(items)
+      .where(inArray(items.id, itemIds))
+      .all()
+    const existingItemIds = new Set(existingItems.map((item) => item.id))
     const missingItemIds = itemIds.filter((itemId) => !existingItemIds.has(itemId))
 
     if (missingItemIds.length > 0) {
@@ -77,22 +73,14 @@ export async function createBulkSnapshots(request: Request, db: D1Database) {
 
   const now = new Date().toISOString()
   const statements = snapshotInputs.map((snapshot) =>
-    db
-      .prepare(
-        `
-          INSERT INTO inventory_snapshots
-            (item_id, value, note, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?)
-        `,
-      )
-      .bind(
-        snapshot.item_id,
-        snapshot.value,
-        typeof snapshot.note === "string" ? snapshot.note : null,
-        now,
-        now,
-      ),
-  )
+    db.insert(inventorySnapshots).values({
+      itemId: snapshot.item_id as number,
+      value: snapshot.value as number,
+      note: typeof snapshot.note === "string" ? snapshot.note : null,
+      createdAt: now,
+      updatedAt: now,
+    }),
+  ) as unknown as [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]]
   const results = await db.batch(statements)
   const createdIds = results
     .map((result) => (result.meta as { last_row_id?: number }).last_row_id)
@@ -102,18 +90,19 @@ export async function createBulkSnapshots(request: Request, db: D1Database) {
     return jsonResponse({ error: "Unable to create snapshots" }, { status: 500 })
   }
 
-  const placeholders = createdIds.map(() => "?").join(", ")
   const createdSnapshots = await db
-    .prepare(
-      `
-        SELECT id, item_id, value, note, created_at, updated_at
-        FROM inventory_snapshots
-        WHERE id IN (${placeholders})
-        ORDER BY id ASC
-      `,
-    )
-    .bind(...createdIds)
-    .all<SnapshotRow>()
+    .select({
+      id: inventorySnapshots.id,
+      item_id: inventorySnapshots.itemId,
+      value: inventorySnapshots.value,
+      note: inventorySnapshots.note,
+      created_at: inventorySnapshots.createdAt,
+      updated_at: inventorySnapshots.updatedAt,
+    })
+    .from(inventorySnapshots)
+    .where(inArray(inventorySnapshots.id, createdIds))
+    .orderBy(asc(inventorySnapshots.id))
+    .all()
 
-  return jsonResponse(createdSnapshots.results, { status: 201 })
+  return jsonResponse(createdSnapshots, { status: 201 })
 }
