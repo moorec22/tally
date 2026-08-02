@@ -84,7 +84,7 @@ export default function InventoryItemRow({
         }}
       >
         {quantity}
-        {unitSuffix(item.unit)}
+        {unitSuffix(item.unit, item.value)}
       </Typography>
 
       <Typography
