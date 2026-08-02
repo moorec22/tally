@@ -12,8 +12,8 @@ Browser -> Cloudflare Access -> Worker API -> D1 binding
 
 The Worker serves both `/api/*` JSON requests and the static frontend assets.
 API routes live under `/api/v1/`, authenticate the Cloudflare Access identity,
-validate mutation requests, and execute explicit D1 queries through the `DB`
-binding.
+validate mutation requests, and execute Drizzle ORM queries through the `DB`
+D1 binding.
 
 ## Folder Structure
 
@@ -32,7 +32,7 @@ the files that use it.
 | `src/screens/` | Page-level React views responsible for data loading, orchestration, and composing smaller components. |
 | `src/types/` | Shared TypeScript shapes for frontend data contracts. These should stay aligned with Worker API responses. |
 | `src/utils/` | Small frontend utility functions that are not React components. |
-| `src/worker/` | Cloudflare Worker entrypoint, API routing, authentication checks, input validation, and D1 queries. |
+| `src/worker/` | Cloudflare Worker entrypoint, API routing, authentication checks, input validation, and Drizzle-backed D1 queries. |
 | `tests/frontend/` | Vitest tests for React components, screens, and frontend support utilities. |
 | `tests/worker/` | Vitest tests for Worker API behavior. |
 | `.github/workflows/` | CI and deployment automation. |
@@ -50,7 +50,8 @@ Top-level configuration files define the toolchain and deployment behavior:
 
 When adding code, prefer the narrowest existing home. Shared UI belongs in
 `src/components/`, page orchestration belongs in `src/screens/`, API persistence
-belongs in `src/worker/`, and database shape changes belong in `migrations/`.
+belongs in `src/worker/`, Drizzle table definitions belong in `src/worker/db/`,
+and database shape changes belong in `migrations/`.
 
 ## API Endpoints
 
@@ -314,4 +315,4 @@ The schema defines two indexes:
 - Preserve `items.id` when importing data from the older Rails/Postgres app so
   existing `/items/:id` URLs keep working.
 - Do not add browser-side database access. New data model behavior should stay
-  behind Worker handlers and D1 bindings.
+  behind Worker handlers and Drizzle queries over D1 bindings.

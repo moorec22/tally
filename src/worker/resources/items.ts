@@ -1,3 +1,12 @@
+import { and, asc, eq, inArray, max } from "drizzle-orm"
+
+import type { AppDatabase } from "../db/client"
+import {
+  inventorySnapshots,
+  items,
+  type ItemRecord,
+  type SnapshotRecord,
+} from "../db/schema"
 import { jsonResponse, notFound } from "../http"
 import {
   integerOrNull,
@@ -27,52 +36,99 @@ type ItemInput = {
   unit?: unknown
 }
 
-function itemQuery(whereClause = "") {
-  return `
-    SELECT
-      i.id,
-      i.name,
-      i.category,
-      i.unit,
-      i.preferred_source,
-      i.low,
-      i.high,
-      s.value,
-      s.updated_at AS last_updated_at
-    FROM items i
-    LEFT JOIN inventory_snapshots s ON s.id = (
-      SELECT latest.id
-      FROM inventory_snapshots latest
-      WHERE latest.item_id = i.id
-      ORDER BY latest.created_at DESC, latest.id DESC
-      LIMIT 1
+function presentItem(item: ItemRecord, snapshot?: SnapshotRecord): ItemRow {
+  return {
+    id: item.id,
+    name: item.name,
+    category: item.category,
+    unit: item.unit,
+    preferred_source: item.preferredSource,
+    low: item.low,
+    high: item.high,
+    value: snapshot?.value ?? null,
+    last_updated_at: snapshot?.updatedAt ?? null,
+  }
+}
+
+async function latestSnapshotsByItemId(db: AppDatabase, itemIds: number[]) {
+  if (itemIds.length === 0) {
+    return new Map<number, SnapshotRecord>()
+  }
+
+  const latestCreatedAt = db
+    .select({
+      itemId: inventorySnapshots.itemId,
+      createdAt: max(inventorySnapshots.createdAt).as("created_at"),
+    })
+    .from(inventorySnapshots)
+    .where(inArray(inventorySnapshots.itemId, itemIds))
+    .groupBy(inventorySnapshots.itemId)
+    .as("latest_created_at")
+  const latestSnapshotIds = db
+    .select({
+      itemId: inventorySnapshots.itemId,
+      id: max(inventorySnapshots.id).as("id"),
+    })
+    .from(inventorySnapshots)
+    .innerJoin(
+      latestCreatedAt,
+      and(
+        eq(inventorySnapshots.itemId, latestCreatedAt.itemId),
+        eq(inventorySnapshots.createdAt, latestCreatedAt.createdAt),
+      ),
     )
-    ${whereClause}
-  `
+    .groupBy(inventorySnapshots.itemId)
+    .as("latest_snapshot_ids")
+  const rows = await db
+    .select({
+      id: inventorySnapshots.id,
+      itemId: inventorySnapshots.itemId,
+      value: inventorySnapshots.value,
+      note: inventorySnapshots.note,
+      createdAt: inventorySnapshots.createdAt,
+      updatedAt: inventorySnapshots.updatedAt,
+    })
+    .from(inventorySnapshots)
+    .innerJoin(latestSnapshotIds, eq(inventorySnapshots.id, latestSnapshotIds.id))
+    .orderBy(asc(inventorySnapshots.itemId))
+    .all()
+
+  return new Map(rows.map((row) => [row.itemId, row]))
 }
 
-export async function presentedItem(db: D1Database, id: number) {
-  return db
-    .prepare(`${itemQuery("WHERE i.id = ?")} LIMIT 1`)
-    .bind(id)
-    .first<ItemRow>()
+export async function presentedItem(db: AppDatabase, id: number) {
+  const item = await db.select().from(items).where(eq(items.id, id)).limit(1).get()
+
+  if (!item) {
+    return null
+  }
+
+  const snapshotsByItemId = await latestSnapshotsByItemId(db, [id])
+
+  return presentItem(item, snapshotsByItemId.get(id))
 }
 
-export async function listItems(db: D1Database) {
-  const result = await db
-    .prepare(`${itemQuery()} ORDER BY i.name ASC, i.id ASC`)
-    .all<ItemRow>()
+export async function listItems(db: AppDatabase) {
+  const rows = await db
+    .select()
+    .from(items)
+    .orderBy(asc(items.name), asc(items.id))
+    .all()
+  const snapshotsByItemId = await latestSnapshotsByItemId(
+    db,
+    rows.map((item) => item.id),
+  )
 
-  return result.results
+  return rows.map((item) => presentItem(item, snapshotsByItemId.get(item.id)))
 }
 
-export async function getItem(db: D1Database, id: number) {
+export async function getItem(db: AppDatabase, id: number) {
   const item = await presentedItem(db, id)
 
   return item ? jsonResponse(item) : notFound()
 }
 
-export async function createItem(request: Request, db: D1Database) {
+export async function createItem(request: Request, db: AppDatabase) {
   const body = await readJsonObject(request)
   const item = body.item as ItemInput | undefined
   const name = requiredText(item?.name)
@@ -92,29 +148,23 @@ export async function createItem(request: Request, db: D1Database) {
     errors.high = ["must be an integer"]
   }
 
-  if (Object.keys(errors).length > 0) {
+  if (Object.keys(errors).length > 0 || name === null) {
     return jsonResponse({ errors }, { status: 422 })
   }
 
   const now = new Date().toISOString()
   const result = await db
-    .prepare(
-      `
-        INSERT INTO items
-          (name, category, unit, preferred_source, low, high, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `,
-    )
-    .bind(
+    .insert(items)
+    .values({
       name,
-      textOrNull(item?.category),
-      textOrNull(item?.unit),
-      textOrNull(item?.preferred_source),
+      category: textOrNull(item?.category),
+      unit: textOrNull(item?.unit),
+      preferredSource: textOrNull(item?.preferred_source),
       low,
       high,
-      now,
-      now,
-    )
+      createdAt: now,
+      updatedAt: now,
+    })
     .run()
   const createdId = (result.meta as { last_row_id?: number }).last_row_id
 
@@ -125,7 +175,7 @@ export async function createItem(request: Request, db: D1Database) {
   return jsonResponse(await presentedItem(db, createdId), { status: 201 })
 }
 
-export async function updateItem(request: Request, db: D1Database, id: number) {
+export async function updateItem(request: Request, db: AppDatabase, id: number) {
   const existingItem = await presentedItem(db, id)
 
   if (!existingItem) {
@@ -151,22 +201,16 @@ export async function updateItem(request: Request, db: D1Database, id: number) {
   }
 
   await db
-    .prepare(
-      `
-        UPDATE items
-        SET category = ?, unit = ?, preferred_source = ?, low = ?, high = ?, updated_at = ?
-        WHERE id = ?
-      `,
-    )
-    .bind(
-      textOrNull(item?.category),
-      textOrNull(item?.unit),
-      textOrNull(item?.preferred_source),
+    .update(items)
+    .set({
+      category: textOrNull(item?.category),
+      unit: textOrNull(item?.unit),
+      preferredSource: textOrNull(item?.preferred_source),
       low,
       high,
-      new Date().toISOString(),
-      id,
-    )
+      updatedAt: new Date().toISOString(),
+    })
+    .where(eq(items.id, id))
     .run()
 
   return jsonResponse(await presentedItem(db, id))
