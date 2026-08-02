@@ -5,7 +5,7 @@
     "build": "next build",
     "build-storybook": "storybook build",
     "deploy": "wrangler deploy",
-    "dev": "wrangler dev --persist-to $HOME/.local/share/tally-d1",
+    "dev": "wrangler dev --persist-to $HOME/.local/share/tally-d1 --var AUTH_BYPASS_EMAIL:local@tally.test",
     "next:dev": "next dev --hostname 0.0.0.0",
     "storybook": "storybook dev -p 6006 --host 0.0.0.0",
     "test": "vitest run --config vitest.config.ts",
