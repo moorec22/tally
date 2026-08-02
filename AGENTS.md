@@ -28,6 +28,8 @@ when architecture-relevant decisions change.
   client-side state or routing until the product needs it.
 - Decompose frontend UI into focused React components. Keep page-level
   components responsible for data loading and orchestration.
+- Factor components for reuse whenever possible. Prefer extracting shared UI
+  patterns into focused components over duplicating markup or behavior.
 - The browser must never connect directly to D1 or contain Cloudflare API
   credentials.
 - Put all database access behind the Cloudflare Worker D1 binding.
