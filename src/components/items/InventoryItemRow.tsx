@@ -33,6 +33,7 @@ export default function InventoryItemRow({
   const itemName = presentText(item.name)
   const category = presentText(item.category)
   const quantity = item.value === null ? "--" : item.value.toString()
+  const quantityLabel = `${quantity}${unitSuffix(item.unit, item.value)}`
   const lastCounted = presentCompactDate(item.last_updated_at)
   const hasInvalidCount =
     draftEntry.value.trim() !== "" && !/^\d+$/.test(draftEntry.value.trim())
@@ -80,11 +81,15 @@ export default function InventoryItemRow({
           gridColumn: { xs: isInventoryActive ? "1 / -1" : 2, sm: 3 },
           gridRow: { xs: isInventoryActive ? 3 : 1, sm: "auto" },
           justifySelf: "start",
+          maxWidth: "100%",
+          minWidth: 0,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
           whiteSpace: "nowrap",
         }}
+        title={quantityLabel}
       >
-        {quantity}
-        {unitSuffix(item.unit, item.value)}
+        {quantityLabel}
       </Typography>
 
       <Typography
