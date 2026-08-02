@@ -16,6 +16,9 @@ Cloudflare Access protects the app and API at the edge. The Worker also
 validates the Access JWT before serving `/api/*`, so D1 is only reachable from
 trusted server-side Worker code.
 
+See [`docs/architecture.md`](docs/architecture.md) for the living architecture
+reference, including the D1 data model.
+
 ## Local Setup
 
 Install tool versions:
