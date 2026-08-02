@@ -1,0 +1,11 @@
+"$schema" = "https://conductor.build/schemas/settings.repo.schema.json"
+
+[scripts]
+setup = '''
+if [ "$CONDUCTOR_IS_LOCAL" = "0" ]; then
+  export MISE_TRUSTED_CONFIG_PATHS="/workspaces"
+fi
+
+mise install
+mise exec -- yarn install
+'''
