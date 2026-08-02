@@ -226,9 +226,9 @@ Validation rules:
 
 ## D1 Data Model
 
-The current D1 schema is defined in
-[`migrations/0001_initial.sql`](../migrations/0001_initial.sql). It has two
-domain tables: `items` and `inventory_snapshots`.
+The current D1 schema is defined by the SQL files in
+[`migrations/`](../migrations/). It has two domain tables: `items` and
+`inventory_snapshots`.
 
 ### `items`
 
@@ -238,7 +238,7 @@ counted.
 | Column | Type | Notes |
 | --- | --- | --- |
 | `id` | `INTEGER PRIMARY KEY AUTOINCREMENT` | Stable item identifier used by API responses and item detail URLs. |
-| `name` | `TEXT NOT NULL` | Required display name. |
+| `name` | `TEXT NOT NULL` | Required unique display name. |
 | `category` | `TEXT` | Optional grouping label for filtering and scanning inventory. |
 | `unit` | `TEXT` | Optional count unit, such as `reams`, `boxes`, or `each`. |
 | `preferred_source` | `TEXT` | Optional purchasing/source note. |
@@ -250,6 +250,7 @@ counted.
 Important behavior:
 
 - Creating an item requires a non-blank `name`.
+- Item names are unique at the database layer.
 - `category`, `unit`, and `preferred_source` are trimmed and stored as `NULL`
   when blank.
 - `low` and `high` are nullable integers. The current schema does not enforce
@@ -306,7 +307,7 @@ The schema defines two indexes:
 
 | Index | Purpose |
 | --- | --- |
-| `index_items_on_name_and_id` on `(name, id)` | Supports stable item listing ordered by name and then id. |
+| `index_items_on_name` unique on `(name)` | Enforces unique item names and supports item listing ordered by name. |
 | `index_inventory_snapshots_latest` on `(item_id, created_at DESC, id DESC)` | Supports efficient latest-snapshot lookup per item. |
 
 ### Migration Notes
