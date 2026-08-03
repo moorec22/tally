@@ -423,6 +423,102 @@ describe("HomePage", () => {
     expect(within(dialog).getByLabelText("High")).toBeInTheDocument()
   })
 
+  it("opens a low-stock dialog using all loaded items regardless of active filters", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => [
+          {
+            ...items[0],
+            id: 42,
+            name: "Printer Paper",
+            category: "Office",
+            low: 5,
+            high: 30,
+            value: 2,
+          },
+          {
+            ...items[1],
+            id: 43,
+            name: "Packing Tape",
+            category: "Shipping",
+            unit: "rolls",
+            low: 10,
+            high: null,
+            value: 7,
+          },
+          {
+            ...items[2],
+            id: 44,
+            name: "Mystery Bin",
+            category: null,
+            low: 2,
+            high: 8,
+            value: 0,
+          },
+          {
+            ...items[0],
+            id: 45,
+            name: "Clipboards",
+            category: "Office",
+            unit: "each",
+            low: 2,
+            high: 12,
+            value: 2,
+          },
+        ],
+      }),
+    )
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+    fireEvent.change(screen.getByLabelText("Search inventory"), {
+      target: { value: "printer" },
+    })
+
+    expect(screen.queryByText("Packing Tape")).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "View Low Stock" }))
+
+    const dialog = await screen.findByRole("dialog", { name: "Low Stock" })
+    expect(within(dialog).getByRole("heading", { name: "Office" })).toBeInTheDocument()
+    expect(within(dialog).getByRole("heading", { name: "Shipping" })).toBeInTheDocument()
+    expect(within(dialog).getByRole("heading", { name: "Not set" })).toBeInTheDocument()
+    expect(within(dialog).getByText("Printer Paper")).toBeInTheDocument()
+    expect(within(dialog).getByText("Current: 2 reams")).toBeInTheDocument()
+    expect(within(dialog).getByText("Minimum: 5 reams")).toBeInTheDocument()
+    expect(within(dialog).getByText("Maximum: 30 reams")).toBeInTheDocument()
+    expect(within(dialog).getAllByText("Need 3 to reach minimum")).toHaveLength(2)
+    expect(within(dialog).getByText("Packing Tape")).toBeInTheDocument()
+    expect(within(dialog).getByText("Maximum: Not set")).toBeInTheDocument()
+    expect(within(dialog).getByText("Mystery Bin")).toBeInTheDocument()
+    expect(within(dialog).queryByText("Clipboards")).not.toBeInTheDocument()
+  })
+
+  it("shows an empty low-stock state when no loaded items are below minimum", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => items,
+      }),
+    )
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+    fireEvent.click(screen.getByRole("button", { name: "View Low Stock" }))
+
+    const dialog = await screen.findByRole("dialog", { name: "Low Stock" })
+    expect(
+      within(dialog).getByText("No low-stock items right now."),
+    ).toBeInTheDocument()
+  })
+
   it("requires core item fields before creating an item", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,

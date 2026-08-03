@@ -11,8 +11,8 @@ import { alpha } from "@mui/material/styles"
 import type { InventoryItem } from "../../types/inventory"
 import {
   presentCompactDate,
+  presentQuantity,
   presentText,
-  unitSuffix,
 } from "../../utils/inventoryPresentation"
 
 export type InventoryDraftEntry = {
@@ -35,8 +35,7 @@ export default function InventoryItemRow({
 }: InventoryItemRowProps) {
   const itemName = presentText(item.name)
   const category = presentText(item.category)
-  const quantity = item.value === null ? "--" : item.value.toString()
-  const quantityLabel = `${quantity}${unitSuffix(item.unit, item.value)}`
+  const quantityLabel = presentQuantity(item.value, item.unit, "--")
   const lastCounted = presentCompactDate(item.last_updated_at)
   const isLowStock =
     item.value !== null && item.low !== null && item.value < item.low
