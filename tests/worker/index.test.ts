@@ -6,7 +6,7 @@ type ItemRecord = {
   id: number
   name: string
   category: string | null
-  unit: string | null
+  unit: string
   preferred_source: string | null
   low: number | null
   high: number | null
@@ -165,7 +165,7 @@ class MockD1Database {
         id,
         name: params[0] as string,
         category: params[1] as string | null,
-        unit: params[2] as string | null,
+        unit: params[2] as string,
         preferred_source: params[3] as string | null,
         low: params[4] as number | null,
         high: params[5] as number | null,
@@ -182,7 +182,7 @@ class MockD1Database {
 
       if (item) {
         item.category = params[0] as string | null
-        item.unit = params[1] as string | null
+        item.unit = params[1] as string
         item.preferred_source = params[2] as string | null
         item.low = params[3] as number | null
         item.high = params[4] as number | null
@@ -303,6 +303,18 @@ function jsonRequest(path: string, body: unknown) {
   })
 }
 
+function patchJsonRequest(path: string, body: unknown) {
+  return new Request(`https://tally.example.com${path}`, {
+    body: JSON.stringify(body),
+    headers: {
+      "Content-Type": "application/json",
+      Origin: "https://tally.example.com",
+      "X-Requested-With": "XMLHttpRequest",
+    },
+    method: "PATCH",
+  })
+}
+
 describe("worker API", () => {
   it("serves HTML assets with no-store caching so clients pick up new bundles", async () => {
     const response = await worker.fetch(
@@ -385,6 +397,48 @@ describe("worker API", () => {
         category: "Shipping",
         name: "Packing Tape",
         unit: "rolls",
+      }),
+    )
+  })
+
+  it('uses "unit" when creating an item without a unit', async () => {
+    const db = new MockD1Database()
+    const response = await worker.fetch(
+      jsonRequest("/api/v1/items", {
+        item: {
+          category: "Shipping",
+          name: "Packing Tape",
+        },
+      }),
+      env(db),
+    )
+
+    expect(response.status).toBe(201)
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        name: "Packing Tape",
+        unit: "unit",
+      }),
+    )
+  })
+
+  it('uses "unit" when updating an item with a blank unit', async () => {
+    const db = new MockD1Database()
+    const response = await worker.fetch(
+      patchJsonRequest("/api/v1/items/42", {
+        item: {
+          category: "Office",
+          unit: " ",
+        },
+      }),
+      env(db),
+    )
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        id: 42,
+        unit: "unit",
       }),
     )
   })

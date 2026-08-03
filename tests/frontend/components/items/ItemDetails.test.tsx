@@ -57,7 +57,7 @@ describe("ItemDetails", () => {
           ...countedItem,
           name: null,
           category: null,
-          unit: null,
+          unit: "unit",
           preferred_source: null,
           low: null,
           high: null,
@@ -72,7 +72,8 @@ describe("ItemDetails", () => {
       screen.getByRole("heading", { level: 1, name: "Not set" }),
     ).toBeInTheDocument()
     expect(screen.getByText("--")).toBeInTheDocument()
-    expect(screen.getAllByText("Not set")).toHaveLength(6)
+    expect(screen.getByText("unit")).toBeInTheDocument()
+    expect(screen.getAllByText("Not set")).toHaveLength(5)
     expect(screen.getByText("Not counted")).toBeInTheDocument()
   })
 

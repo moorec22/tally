@@ -19,7 +19,7 @@ type ItemRow = {
   id: number
   name: string | null
   category: string | null
-  unit: string | null
+  unit: string
   preferred_source: string | null
   low: number | null
   high: number | null
@@ -48,6 +48,16 @@ function presentItem(item: ItemRecord, snapshot?: SnapshotRecord): ItemRow {
     value: snapshot?.value ?? null,
     last_updated_at: snapshot?.updatedAt ?? null,
   }
+}
+
+function unitOrDefault(value: unknown) {
+  if (typeof value !== "string") {
+    return "unit"
+  }
+
+  const trimmedValue = value.trim()
+
+  return trimmedValue ? trimmedValue : "unit"
 }
 
 async function latestSnapshotsByItemId(db: AppDatabase, itemIds: number[]) {
@@ -158,7 +168,7 @@ export async function createItem(request: Request, db: AppDatabase) {
     .values({
       name,
       category: textOrNull(item?.category),
-      unit: textOrNull(item?.unit),
+      unit: unitOrDefault(item?.unit),
       preferredSource: textOrNull(item?.preferred_source),
       low,
       high,
@@ -204,7 +214,7 @@ export async function updateItem(request: Request, db: AppDatabase, id: number) 
     .update(items)
     .set({
       category: textOrNull(item?.category),
-      unit: textOrNull(item?.unit),
+      unit: unitOrDefault(item?.unit),
       preferredSource: textOrNull(item?.preferred_source),
       low,
       high,

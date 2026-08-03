@@ -144,8 +144,9 @@ Request:
 Validation rules:
 
 - `name` is required and must not be blank after trimming.
-- `category`, `unit`, and `preferred_source` are optional text fields. Blank
-  strings are stored as `NULL`.
+- `category` and `preferred_source` are optional text fields. Blank strings are
+  stored as `NULL`.
+- `unit` defaults to `"unit"` when omitted or blank.
 - `low` and `high` are optional integers.
 
 Validation failures return `422` with field-level errors:
@@ -179,8 +180,9 @@ Request:
 ```
 
 Validation rules match `POST /api/v1/items` for editable metadata fields.
-`name` is not updated by this endpoint. Omitted text and threshold fields are
-treated the same as blank values and are cleared to `NULL`.
+`name` is not updated by this endpoint. Omitted `category`,
+`preferred_source`, and threshold fields are treated the same as blank values
+and are cleared to `NULL`; omitted or blank `unit` is stored as `"unit"`.
 
 ### `POST /api/v1/inventory_snapshots/bulk`
 
@@ -240,7 +242,7 @@ counted.
 | `id` | `INTEGER PRIMARY KEY AUTOINCREMENT` | Stable item identifier used by API responses and item detail URLs. |
 | `name` | `TEXT NOT NULL` | Required unique display name. |
 | `category` | `TEXT` | Optional grouping label for filtering and scanning inventory. |
-| `unit` | `TEXT` | Optional count unit, such as `reams`, `boxes`, or `each`. |
+| `unit` | `TEXT NOT NULL DEFAULT 'unit'` | Count unit, such as `reams`, `boxes`, or `each`. Defaults to `unit` when omitted. |
 | `preferred_source` | `TEXT` | Optional purchasing/source note. |
 | `low` | `INTEGER` | Optional lower target threshold. |
 | `high` | `INTEGER` | Optional upper target threshold. |
@@ -251,8 +253,8 @@ Important behavior:
 
 - Creating an item requires a non-blank `name`.
 - Item names are unique at the database layer.
-- `category`, `unit`, and `preferred_source` are trimmed and stored as `NULL`
-  when blank.
+- `category` and `preferred_source` are trimmed and stored as `NULL` when blank.
+- `unit` is trimmed and stored as `"unit"` when blank or omitted.
 - `low` and `high` are nullable integers. The current schema does not enforce
   ordering between them.
 - Updating an item changes metadata fields only. Stock counts are recorded as

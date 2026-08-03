@@ -6,7 +6,7 @@ export const items = sqliteTable(
     id: integer("id").primaryKey({ autoIncrement: true }),
     name: text("name").notNull(),
     category: text("category"),
-    unit: text("unit"),
+    unit: text("unit").notNull().default("unit"),
     preferredSource: text("preferred_source"),
     low: integer("low"),
     high: integer("high"),
