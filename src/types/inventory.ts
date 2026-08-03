@@ -2,7 +2,7 @@ export type InventoryItem = {
   id: number
   name: string | null
   category: string | null
-  unit: string | null
+  unit: string
   preferred_source: string | null
   low: number | null
   high: number | null

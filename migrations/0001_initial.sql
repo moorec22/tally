@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS items (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   category TEXT,
-  unit TEXT,
+  unit TEXT NOT NULL DEFAULT 'unit',
   preferred_source TEXT,
   low INTEGER,
   high INTEGER,
