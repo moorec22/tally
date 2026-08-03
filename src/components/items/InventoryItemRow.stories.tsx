@@ -26,6 +26,17 @@ const longItem: InventoryItem = {
   last_updated_at: null,
 }
 
+const lowStockItem: InventoryItem = {
+  ...item,
+  id: 44,
+  name: "antacids",
+  category: "First Aid",
+  unit: null,
+  low: 5,
+  value: 4,
+  last_updated_at: "2026-08-03T00:10:18.941Z",
+}
+
 const meta = {
   component: InventoryItemRow,
   args: {
@@ -78,6 +89,36 @@ export const SmallMobile: Story = {
     await expect(
       canvas.getByRole("link", { name: /Thermal shipping label rolls/i }),
     ).toBeVisible()
+  },
+}
+
+export const LowStockMobile: Story = {
+  args: {
+    item: lowStockItem,
+  },
+  globals: {
+    viewport: { value: "mobile1" },
+  },
+  render: (args) => (
+    <ul style={{ margin: 0, padding: 0 }}>
+      <InventoryItemRow {...args} />
+    </ul>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const quantity = canvas.getByText("4")
+    const lowStockBadge = canvas.getByText("Low stock").closest(".MuiChip-root")
+
+    if (!lowStockBadge) {
+      throw new Error("Low stock badge root was not rendered.")
+    }
+
+    const quantityBounds = quantity.getBoundingClientRect()
+    const badgeBounds = lowStockBadge.getBoundingClientRect()
+
+    await expect(
+      Math.abs(quantityBounds.right - badgeBounds.right),
+    ).toBeLessThan(1)
   },
 }
 
