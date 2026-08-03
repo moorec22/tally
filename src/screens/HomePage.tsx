@@ -15,6 +15,7 @@ import { apiJsonHeaders } from "../api/client"
 import CancelInventoryDialog from "./home/CancelInventoryDialog"
 import InventoryHeader from "./home/InventoryHeader"
 import InventoryListPanel from "./home/InventoryListPanel"
+import LowStockViewDialog from "./home/LowStockViewDialog"
 import ReviewInventoryDialog from "./home/ReviewInventoryDialog"
 import type {
   CategoryFilterOption,
@@ -216,6 +217,7 @@ export default function HomePage() {
   )
   const [isCreateItemOpen, setIsCreateItemOpen] = useState(false)
   const [isCancelInventoryOpen, setIsCancelInventoryOpen] = useState(false)
+  const [isLowStockViewOpen, setIsLowStockViewOpen] = useState(false)
   const [isReviewOpen, setIsReviewOpen] = useState(false)
   const [isSubmittingInventory, setIsSubmittingInventory] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -308,6 +310,7 @@ export default function HomePage() {
 
     return sortInventoryItems(matchingItems, inventorySort)
   }, [inventorySort, loadState, searchQuery, selectedCategory])
+  const allLoadedItems = loadState.status === "loaded" ? loadState.items : []
 
   const countedInventoryItems = useMemo<CountedInventoryItem[]>(() => {
     if (loadState.status !== "loaded") {
@@ -514,6 +517,7 @@ export default function HomePage() {
           onCancelInventory={cancelInventorySession}
           onCategoryChange={setSelectedCategory}
           onInventoryToggle={handleInventoryToggle}
+          onLowStockView={() => setIsLowStockViewOpen(true)}
           onSearchChange={setSearchQuery}
           searchQuery={searchQuery}
           selectedCategory={selectedCategory}
@@ -536,6 +540,11 @@ export default function HomePage() {
         onConfirm={confirmInventory}
         open={isReviewOpen}
         submitError={submitError}
+      />
+      <LowStockViewDialog
+        items={allLoadedItems}
+        onClose={() => setIsLowStockViewOpen(false)}
+        open={isLowStockViewOpen}
       />
       <ItemCreateDialog
         onClose={() => setIsCreateItemOpen(false)}

@@ -1,5 +1,6 @@
 import AddIcon from "@mui/icons-material/Add"
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined"
+import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined"
 import SearchIcon from "@mui/icons-material/Search"
 import Button from "@mui/material/Button"
 import InputAdornment from "@mui/material/InputAdornment"
@@ -19,6 +20,7 @@ type InventoryHeaderProps = {
   onCancelInventory: () => void
   onCategoryChange: (category: string) => void
   onInventoryToggle: () => void
+  onLowStockView: () => void
   onSearchChange: (query: string) => void
   searchQuery: string
   selectedCategory: string
@@ -31,6 +33,7 @@ export default function InventoryHeader({
   onCancelInventory,
   onCategoryChange,
   onInventoryToggle,
+  onLowStockView,
   onSearchChange,
   searchQuery,
   selectedCategory,
@@ -99,6 +102,14 @@ export default function InventoryHeader({
               </MenuItem>
             ))}
           </TextField>
+          <Button
+            onClick={onLowStockView}
+            startIcon={<ReportProblemOutlinedIcon />}
+            sx={{ minWidth: { md: 170 }, width: { xs: "100%", md: "auto" } }}
+            variant="outlined"
+          >
+            View Low Stock
+          </Button>
           <Button
             onClick={onInventoryToggle}
             sx={{ minWidth: { md: 160 }, width: { xs: "100%", md: "auto" } }}
