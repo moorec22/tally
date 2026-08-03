@@ -283,6 +283,14 @@ function env(db = new MockD1Database()) {
   } as unknown as Parameters<typeof worker.fetch>[1]
 }
 
+function assetEnv(assetResponse: Response) {
+  return {
+    ASSETS: { fetch: async () => assetResponse.clone() },
+    AUTH_BYPASS_EMAIL: "owner@example.com",
+    DB: new MockD1Database(),
+  } as unknown as Parameters<typeof worker.fetch>[1]
+}
+
 function jsonRequest(path: string, body: unknown) {
   return new Request(`https://tally.example.com${path}`, {
     body: JSON.stringify(body),
@@ -296,6 +304,25 @@ function jsonRequest(path: string, body: unknown) {
 }
 
 describe("worker API", () => {
+  it("serves HTML assets with no-store caching so clients pick up new bundles", async () => {
+    const response = await worker.fetch(
+      new Request("https://tally.example.com/"),
+      assetEnv(
+        new Response("<!doctype html>", {
+          headers: {
+            "Cache-Control": "public, max-age=31536000",
+            "Content-Type": "text/html; charset=utf-8",
+          },
+        }),
+      ),
+    )
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get("Cache-Control")).toBe("no-store")
+    expect(response.headers.get("Content-Type")).toBe("text/html; charset=utf-8")
+    expect(await response.text()).toBe("<!doctype html>")
+  })
+
   it("requires Cloudflare Access identity unless local auth bypass is configured", async () => {
     const response = await worker.fetch(
       new Request("https://tally.example.com/api/v1/items"),

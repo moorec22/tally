@@ -18,6 +18,22 @@ const itemWithLongQuantity: InventoryItem = {
 }
 
 describe("InventoryItemRow", () => {
+  it("pluralizes singular units in displayed quantities", () => {
+    renderWithTheme(
+      <>
+        <InventoryItemRow
+          item={{ ...itemWithLongQuantity, id: 1, unit: "box", value: 2 }}
+        />
+        <InventoryItemRow
+          item={{ ...itemWithLongQuantity, id: 2, unit: "pair", value: 16 }}
+        />
+      </>,
+    )
+
+    expect(screen.getByText("2 boxes")).toBeInTheDocument()
+    expect(screen.getByText("16 pairs")).toBeInTheDocument()
+  })
+
   it("keeps long quantities within their table cell while preserving the full value", () => {
     renderWithTheme(<InventoryItemRow item={itemWithLongQuantity} />)
 
