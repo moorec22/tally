@@ -17,6 +17,11 @@ const itemWithLongQuantity: InventoryItem = {
   last_updated_at: "2026-01-02T15:04:00.000Z",
 }
 
+const lowStockItem: InventoryItem = {
+  ...itemWithLongQuantity,
+  value: 4,
+}
+
 describe("InventoryItemRow", () => {
   it("keeps long quantities within their table cell while preserving the full value", () => {
     renderWithTheme(<InventoryItemRow item={itemWithLongQuantity} />)
@@ -31,5 +36,29 @@ describe("InventoryItemRow", () => {
       textOverflow: "ellipsis",
       whiteSpace: "nowrap",
     })
+  })
+
+  it("flags an item as low stock only when the latest count is below its low threshold", () => {
+    const { rerender } = renderWithTheme(<InventoryItemRow item={lowStockItem} />)
+
+    expect(screen.getByText("Low stock")).toBeInTheDocument()
+
+    rerender(
+      <InventoryItemRow item={{ ...lowStockItem, value: null }} />,
+    )
+
+    expect(screen.queryByText("Low stock")).not.toBeInTheDocument()
+
+    rerender(
+      <InventoryItemRow item={{ ...lowStockItem, low: null }} />,
+    )
+
+    expect(screen.queryByText("Low stock")).not.toBeInTheDocument()
+
+    rerender(
+      <InventoryItemRow item={{ ...lowStockItem, value: lowStockItem.low }} />,
+    )
+
+    expect(screen.queryByText("Low stock")).not.toBeInTheDocument()
   })
 })

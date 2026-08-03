@@ -1,9 +1,12 @@
 import ChevronRightIcon from "@mui/icons-material/ChevronRight"
+import ErrorOutlineOutlinedIcon from "@mui/icons-material/ErrorOutlineOutlined"
 import Box from "@mui/material/Box"
+import Chip from "@mui/material/Chip"
 import Fade from "@mui/material/Fade"
 import Link from "@mui/material/Link"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
+import { alpha } from "@mui/material/styles"
 
 import type { InventoryItem } from "../../types/inventory"
 import {
@@ -35,6 +38,8 @@ export default function InventoryItemRow({
   const quantity = item.value === null ? "--" : item.value.toString()
   const quantityLabel = `${quantity}${unitSuffix(item.unit, item.value)}`
   const lastCounted = presentCompactDate(item.last_updated_at)
+  const isLowStock =
+    item.value !== null && item.low !== null && item.value < item.low
   const hasInvalidCount =
     draftEntry.value.trim() !== "" && !/^\d+$/.test(draftEntry.value.trim())
   const gridTemplateColumns = isInventoryActive
@@ -74,23 +79,44 @@ export default function InventoryItemRow({
         {category}
       </Typography>
 
-      <Typography
+      <Box
         component="span"
         sx={{
-          fontWeight: 700,
+          alignItems: { xs: "flex-end", sm: "flex-start" },
+          display: "flex",
+          flexDirection: "column",
+          gap: 0.75,
           gridColumn: { xs: isInventoryActive ? "1 / -1" : 2, sm: 3 },
           gridRow: { xs: isInventoryActive ? 3 : 1, sm: "auto" },
           justifySelf: "start",
           maxWidth: "100%",
           minWidth: 0,
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
         }}
-        title={quantityLabel}
       >
-        {quantityLabel}
-      </Typography>
+        <Typography
+          component="span"
+          sx={{
+            fontWeight: 700,
+            maxWidth: "100%",
+            minWidth: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+          title={quantityLabel}
+        >
+          {quantityLabel}
+        </Typography>
+        {isLowStock ? (
+          <Chip
+            color="error"
+            icon={<ErrorOutlineOutlinedIcon />}
+            label="Low stock"
+            size="small"
+            variant="outlined"
+          />
+        ) : null}
+      </Box>
 
       <Typography
         color="text.secondary"
@@ -173,6 +199,8 @@ export default function InventoryItemRow({
         <Box
           sx={{
             alignItems: { sm: "center" },
+            bgcolor: (theme) =>
+              isLowStock ? alpha(theme.palette.error.main, 0.08) : undefined,
             color: "text.primary",
             display: "grid",
             gap: { xs: 1.25, sm: 2 },
@@ -195,11 +223,15 @@ export default function InventoryItemRow({
             px: { xs: 2, sm: 3 },
             py: { xs: 2.25, sm: 2 },
             transition: "background-color 120ms ease",
+            bgcolor: (theme) =>
+              isLowStock ? alpha(theme.palette.error.main, 0.08) : undefined,
             "&:hover": {
-              bgcolor: "action.hover",
+              bgcolor: (theme) =>
+                isLowStock ? alpha(theme.palette.error.main, 0.12) : "action.hover",
             },
             "&:focus-visible": {
-              bgcolor: "action.focus",
+              bgcolor: (theme) =>
+                isLowStock ? alpha(theme.palette.error.main, 0.16) : "action.focus",
               outline: "2px solid",
               outlineColor: "primary.main",
               outlineOffset: "-2px",
