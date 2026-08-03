@@ -144,8 +144,9 @@ Request:
 Validation rules:
 
 - `name` is required and must not be blank after trimming.
-- `category`, `unit`, and `preferred_source` are optional text fields. Blank
-  strings are stored as `NULL`.
+- `category` and `preferred_source` are optional text fields. Blank strings are
+  stored as `NULL`.
+- `unit` defaults to `"unit"` when omitted or blank.
 - `low` and `high` are optional integers.
 
 Validation failures return `422` with field-level errors:
@@ -179,8 +180,9 @@ Request:
 ```
 
 Validation rules match `POST /api/v1/items` for editable metadata fields.
-`name` is not updated by this endpoint. Omitted text and threshold fields are
-treated the same as blank values and are cleared to `NULL`.
+`name` is not updated by this endpoint. Omitted `category`,
+`preferred_source`, and threshold fields are treated the same as blank values
+and are cleared to `NULL`; omitted or blank `unit` is stored as `"unit"`.
 
 ### `POST /api/v1/inventory_snapshots/bulk`
 
@@ -226,9 +228,9 @@ Validation rules:
 
 ## D1 Data Model
 
-The current D1 schema is defined in
-[`migrations/0001_initial.sql`](../migrations/0001_initial.sql). It has two
-domain tables: `items` and `inventory_snapshots`.
+The current D1 schema is defined by the SQL files in
+[`migrations/`](../migrations/). It has two domain tables: `items` and
+`inventory_snapshots`.
 
 ### `items`
 
@@ -238,9 +240,9 @@ counted.
 | Column | Type | Notes |
 | --- | --- | --- |
 | `id` | `INTEGER PRIMARY KEY AUTOINCREMENT` | Stable item identifier used by API responses and item detail URLs. |
-| `name` | `TEXT NOT NULL` | Required display name. |
+| `name` | `TEXT NOT NULL` | Required unique display name. |
 | `category` | `TEXT` | Optional grouping label for filtering and scanning inventory. |
-| `unit` | `TEXT` | Optional count unit, such as `reams`, `boxes`, or `each`. |
+| `unit` | `TEXT NOT NULL DEFAULT 'unit'` | Count unit, such as `reams`, `boxes`, or `each`. Defaults to `unit` when omitted. |
 | `preferred_source` | `TEXT` | Optional purchasing/source note. |
 | `low` | `INTEGER` | Optional lower target threshold. |
 | `high` | `INTEGER` | Optional upper target threshold. |
@@ -250,8 +252,9 @@ counted.
 Important behavior:
 
 - Creating an item requires a non-blank `name`.
-- `category`, `unit`, and `preferred_source` are trimmed and stored as `NULL`
-  when blank.
+- Item names are unique at the database layer.
+- `category` and `preferred_source` are trimmed and stored as `NULL` when blank.
+- `unit` is trimmed and stored as `"unit"` when blank or omitted.
 - `low` and `high` are nullable integers. The current schema does not enforce
   ordering between them.
 - Updating an item changes metadata fields only. Stock counts are recorded as
@@ -306,7 +309,7 @@ The schema defines two indexes:
 
 | Index | Purpose |
 | --- | --- |
-| `index_items_on_name_and_id` on `(name, id)` | Supports stable item listing ordered by name and then id. |
+| `index_items_on_name` unique on `(name)` | Enforces unique item names and supports item listing ordered by name. |
 | `index_inventory_snapshots_latest` on `(item_id, created_at DESC, id DESC)` | Supports efficient latest-snapshot lookup per item. |
 
 ### Migration Notes

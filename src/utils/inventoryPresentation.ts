@@ -6,8 +6,43 @@ export function presentNumber(value: number | null) {
   return value === null ? "Not set" : value.toString()
 }
 
-export function unitSuffix(unit: string | null) {
-  return unit?.trim() ? ` ${unit}` : ""
+const INVARIANT_UNITS = new Set(["ea", "each"])
+
+function pluralizeUnit(unit: string) {
+  const lowerUnit = unit.toLowerCase()
+
+  if (INVARIANT_UNITS.has(lowerUnit) || lowerUnit.endsWith("s")) {
+    return unit
+  }
+
+  if (/[^aeiou]y$/i.test(unit)) {
+    return `${unit.slice(0, -1)}ies`
+  }
+
+  if (/(s|x|z|ch|sh)$/i.test(unit)) {
+    return `${unit}es`
+  }
+
+  return `${unit}s`
+}
+
+export function unitSuffix(unit: string | null, quantity?: number | null) {
+  const trimmedUnit = unit?.trim()
+
+  if (!trimmedUnit) {
+    return ""
+  }
+
+  if (
+    quantity === undefined ||
+    quantity === null ||
+    quantity === 1 ||
+    quantity === -1
+  ) {
+    return ` ${trimmedUnit}`
+  }
+
+  return ` ${pluralizeUnit(trimmedUnit)}`
 }
 
 export function presentTimestamp(value: string | null) {

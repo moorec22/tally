@@ -35,6 +35,21 @@ describe("ItemDetails", () => {
     expect(screen.getByText(/2026/)).toBeInTheDocument()
   })
 
+  it("pluralizes singular units when rendering a counted quantity", () => {
+    renderWithTheme(
+      <ItemDetails
+        item={{
+          ...countedItem,
+          unit: "box",
+          value: 2,
+        }}
+        onSave={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByText("2 boxes")).toBeInTheDocument()
+  })
+
   it("renders readable fallbacks for missing item values", () => {
     renderWithTheme(
       <ItemDetails
@@ -42,7 +57,7 @@ describe("ItemDetails", () => {
           ...countedItem,
           name: null,
           category: null,
-          unit: null,
+          unit: "unit",
           preferred_source: null,
           low: null,
           high: null,
@@ -57,7 +72,8 @@ describe("ItemDetails", () => {
       screen.getByRole("heading", { level: 1, name: "Not set" }),
     ).toBeInTheDocument()
     expect(screen.getByText("--")).toBeInTheDocument()
-    expect(screen.getAllByText("Not set")).toHaveLength(6)
+    expect(screen.getByText("unit")).toBeInTheDocument()
+    expect(screen.getAllByText("Not set")).toHaveLength(5)
     expect(screen.getByText("Not counted")).toBeInTheDocument()
   })
 

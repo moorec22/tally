@@ -1,16 +1,20 @@
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
+import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core"
 
-export const items = sqliteTable("items", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name").notNull(),
-  category: text("category"),
-  unit: text("unit"),
-  preferredSource: text("preferred_source"),
-  low: integer("low"),
-  high: integer("high"),
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull(),
-})
+export const items = sqliteTable(
+  "items",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    name: text("name").notNull(),
+    category: text("category"),
+    unit: text("unit").notNull().default("unit"),
+    preferredSource: text("preferred_source"),
+    low: integer("low"),
+    high: integer("high"),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (table) => [uniqueIndex("index_items_on_name").on(table.name)],
+)
 
 export const inventorySnapshots = sqliteTable("inventory_snapshots", {
   id: integer("id").primaryKey({ autoIncrement: true }),
