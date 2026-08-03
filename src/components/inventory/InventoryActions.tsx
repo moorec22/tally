@@ -1,4 +1,5 @@
 import AddIcon from "@mui/icons-material/Add"
+import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined"
 import Button from "@mui/material/Button"
 import Stack from "@mui/material/Stack"
 
@@ -7,6 +8,7 @@ type InventoryActionsProps = {
   onAddItem: () => void
   onCancelInventory: () => void
   onInventoryToggle: () => void
+  onLowStockView: () => void
 }
 
 export default function InventoryActions({
@@ -14,6 +16,7 @@ export default function InventoryActions({
   onAddItem,
   onCancelInventory,
   onInventoryToggle,
+  onLowStockView,
 }: InventoryActionsProps) {
   return (
     <Stack
@@ -28,6 +31,14 @@ export default function InventoryActions({
         },
       }}
     >
+      <Button
+        onClick={onLowStockView}
+        startIcon={<ReportProblemOutlinedIcon />}
+        sx={{ minWidth: { sm: 170 }, width: { xs: "100%", sm: "auto" } }}
+        variant="outlined"
+      >
+        View Low Stock
+      </Button>
       <Button
         onClick={onInventoryToggle}
         sx={{ minWidth: { sm: 160 }, width: { xs: "100%", sm: "auto" } }}

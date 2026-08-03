@@ -15,6 +15,7 @@ type InventoryHeaderProps = {
   onCancelInventory: () => void
   onCategoryChange: (category: string) => void
   onInventoryToggle: () => void
+  onLowStockView: () => void
   onSearchChange: (query: string) => void
   searchQuery: string
   selectedCategory: string
@@ -27,6 +28,7 @@ export default function InventoryHeader({
   onCancelInventory,
   onCategoryChange,
   onInventoryToggle,
+  onLowStockView,
   onSearchChange,
   searchQuery,
   selectedCategory,
@@ -64,6 +66,7 @@ export default function InventoryHeader({
             onAddItem={onAddItem}
             onCancelInventory={onCancelInventory}
             onInventoryToggle={onInventoryToggle}
+            onLowStockView={onLowStockView}
           />
         </Stack>
       </Stack>

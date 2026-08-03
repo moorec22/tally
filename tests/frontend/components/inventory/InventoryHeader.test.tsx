@@ -17,6 +17,7 @@ describe("InventoryHeader", () => {
         onCancelInventory={vi.fn()}
         onCategoryChange={vi.fn()}
         onInventoryToggle={vi.fn()}
+        onLowStockView={vi.fn()}
         onSearchChange={vi.fn()}
         searchQuery=""
         selectedCategory="__all_categories__"
@@ -35,6 +36,9 @@ describe("InventoryHeader", () => {
     ).toBeInTheDocument()
     expect(
       within(filters).getByRole("combobox", { name: "Category" }),
+    ).toBeInTheDocument()
+    expect(
+      within(actions).getByRole("button", { name: "View Low Stock" }),
     ).toBeInTheDocument()
     expect(
       within(actions).getByRole("button", { name: "Start Inventory" }),
