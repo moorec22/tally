@@ -31,7 +31,7 @@ const lowStockItem: InventoryItem = {
   id: 44,
   name: "antacids",
   category: "First Aid",
-  unit: null,
+  unit: "",
   low: 5,
   value: 4,
   last_updated_at: "2026-08-03T00:10:18.941Z",
