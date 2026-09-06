@@ -108,6 +108,7 @@ TTL: 300
 mise exec -- yarn typecheck
 mise exec -- yarn test
 mise exec -- yarn build
+mise exec -- terraform -chdir=infra/cloudflare init -backend=false
 mise exec -- terraform -chdir=infra/cloudflare fmt -check
 TF_VAR_cloudflare_api_token=dummy-token \
 TF_VAR_cloudflare_account_id=0bbf389854d5395f69c518b74e156f40 \

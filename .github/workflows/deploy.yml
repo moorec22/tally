@@ -85,6 +85,8 @@ jobs:
       - name: Apply Terraform
         run: mise exec -- terraform -chdir=infra/cloudflare apply -auto-approve
         env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           TF_VAR_cloudflare_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -101,6 +103,8 @@ jobs:
           printf '%s' "$cf_access_aud" | mise exec -- yarn wrangler secret put CF_ACCESS_AUD
           printf '%s' "$CF_ACCESS_TEAM_DOMAIN" | mise exec -- yarn wrangler secret put CF_ACCESS_TEAM_DOMAIN
         env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           CF_ACCESS_AUD_EXTRA: ${{ secrets.CF_ACCESS_AUD_EXTRA }}
           CF_ACCESS_TEAM_DOMAIN: ${{ secrets.CF_ACCESS_TEAM_DOMAIN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
