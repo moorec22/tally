@@ -33,11 +33,14 @@ The target architecture is:
 Browser
   -> tally.showerproject.org
   -> Name.com CNAME
-  -> customers.connormo.org
+  -> tally.connormo.org
   -> Cloudflare for SaaS custom hostname
   -> Tally Worker
   -> D1 binding
 ```
+
+`tally.connormo.org` is the Cloudflare-managed provider target. The user-facing
+hostname remains `tally.showerproject.org`.
 
 `connormo.org` will be added to Cloudflare as a Free zone and activated by
 changing its nameservers at the current registrar or DNS authority. After the
@@ -59,7 +62,7 @@ well as repeatable infrastructure:
 - `connormo.org` zone creation and output of the assigned Cloudflare
   nameservers.
 - DNS record for the Cloudflare for SaaS provider target, using
-  `customers.connormo.org`.
+  `tally.connormo.org`.
 - Cloudflare for SaaS custom hostname for `tally.showerproject.org`.
 - Cloudflare Access application configuration for `tally.showerproject.org`
   with the same allowed-user intent as the current Tally Access protection.
@@ -70,7 +73,7 @@ automation is added in a separate task. The operator will add or update the
 external CNAME in Name.com:
 
 ```text
-tally.showerproject.org CNAME customers.connormo.org
+tally.showerproject.org CNAME tally.connormo.org
 ```
 
 If Cloudflare returns TXT validation requirements for the custom hostname, the
@@ -123,7 +126,7 @@ The implementation is acceptable when:
 - Terraform apply can create or reconcile the Cloudflare for SaaS custom
   hostname configuration.
 - Name.com DNS for `tally.showerproject.org` points to
-  `customers.connormo.org`.
+  `tally.connormo.org`.
 - Cloudflare reports the custom hostname and SSL status as active.
 - `curl -I https://tally.showerproject.org/` reaches Cloudflare Access or the
   Tally Worker instead of failing the TLS handshake.
