@@ -15,20 +15,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Set up Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
-          cache: yarn
+      - name: Set up mise
+        uses: jdx/mise-action@v4.2.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install JavaScript dependencies
-        run: corepack enable && yarn install --frozen-lockfile
+        run: mise exec -- yarn install --frozen-lockfile
 
       - name: Typecheck
-        run: yarn typecheck
+        run: mise exec -- yarn typecheck
 
       - name: Run tests
-        run: yarn test
+        run: mise exec -- yarn test
 
       - name: Restore Next.js build cache
         uses: actions/cache@v6
@@ -43,4 +42,17 @@ jobs:
         run: mkdir -p .next/cache
 
       - name: Build static site
-        run: yarn build
+        run: mise exec -- yarn build
+
+      - name: Initialize Terraform without backend
+        run: mise exec -- terraform -chdir=infra/cloudflare init -backend=false
+
+      - name: Check Terraform formatting
+        run: mise exec -- terraform -chdir=infra/cloudflare fmt -check
+
+      - name: Validate Terraform
+        run: mise exec -- terraform -chdir=infra/cloudflare validate
+        env:
+          TF_VAR_cloudflare_api_token: dummy-token
+          TF_VAR_cloudflare_account_id: 0bbf389854d5395f69c518b74e156f40
+          TF_VAR_access_allowed_emails: '["connor@example.com"]'
