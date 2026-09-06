@@ -1,0 +1,6 @@
+access_key = "set-with-AWS_ACCESS_KEY_ID-in-ci"
+secret_key = "set-with-AWS_SECRET_ACCESS_KEY-in-ci"
+
+endpoints = {
+  s3 = "https://0bbf389854d5395f69c518b74e156f40.r2.cloudflarestorage.com"
+}

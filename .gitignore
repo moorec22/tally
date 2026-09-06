@@ -17,3 +17,12 @@
 
 # Ignore local Wrangler state.
 /.wrangler
+
+# Ignore local Terraform state, variables, and provider cache.
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+crash.*.log
