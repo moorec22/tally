@@ -27,6 +27,13 @@ function accessJwks(issuer: string) {
   return jwks
 }
 
+export function parseAccessAudiences(accessAud: string) {
+  return accessAud
+    .split(",")
+    .map((audience) => audience.trim())
+    .filter(Boolean)
+}
+
 export async function authenticateRequest(
   request: Request,
   env: Env,
@@ -35,7 +42,11 @@ export async function authenticateRequest(
     return { email_address: env.AUTH_BYPASS_EMAIL }
   }
 
-  if (!env.CF_ACCESS_AUD || !env.CF_ACCESS_TEAM_DOMAIN) {
+  const audiences = env.CF_ACCESS_AUD
+    ? parseAccessAudiences(env.CF_ACCESS_AUD)
+    : []
+
+  if (audiences.length === 0 || !env.CF_ACCESS_TEAM_DOMAIN) {
     throw new Response("Cloudflare Access is not configured.", { status: 500 })
   }
 
@@ -49,7 +60,7 @@ export async function authenticateRequest(
 
   try {
     const { payload } = await jwtVerify(token, accessJwks(issuer), {
-      audience: env.CF_ACCESS_AUD,
+      audience: audiences,
       issuer,
     })
 
