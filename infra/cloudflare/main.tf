@@ -24,15 +24,9 @@ resource "cloudflare_dns_record" "worker_fallback_origin" {
   ttl     = 1
 }
 
-resource "cloudflare_workers_route" "provider_hostname" {
+resource "cloudflare_workers_route" "saas_hostnames" {
   zone_id = cloudflare_zone.provider.id
-  pattern = "${var.provider_hostname}/*"
-  script  = var.worker_script_name
-}
-
-resource "cloudflare_workers_route" "customer_hostname" {
-  zone_id = cloudflare_zone.provider.id
-  pattern = "${var.customer_hostname}/*"
+  pattern = "*/*"
   script  = var.worker_script_name
 }
 
@@ -60,7 +54,7 @@ resource "cloudflare_custom_hostname" "tally_showerproject" {
 
   depends_on = [
     cloudflare_custom_hostname_fallback_origin.worker,
-    cloudflare_workers_route.customer_hostname,
+    cloudflare_workers_route.saas_hostnames,
   ]
 }
 

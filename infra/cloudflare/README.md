@@ -6,7 +6,7 @@ SaaS.
 
 Wrangler remains the source of truth for the Worker script, static assets, D1
 migrations, local development, and Worker secrets. Terraform owns the provider
-zone, DNS record, Worker routes, Cloudflare for SaaS hostname, and Cloudflare
+zone, DNS record, wildcard Worker route, Cloudflare for SaaS hostname, and Cloudflare
 Access applications.
 
 ## Hostnames
@@ -26,7 +26,7 @@ Browser
   -> Name.com CNAME
   -> tally.connormo.org
   -> Cloudflare for SaaS custom hostname
-  -> Worker route in connormo.org zone
+  -> wildcard Worker route in connormo.org zone
   -> tally Worker
 ```
 
