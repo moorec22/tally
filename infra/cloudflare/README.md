@@ -9,6 +9,28 @@ migrations, local development, and Worker secrets. Terraform owns the provider
 zone, DNS record, wildcard Worker route, Cloudflare for SaaS hostname, and Cloudflare
 Access applications.
 
+## Why Cloudflare for SaaS
+
+`showerproject.org` is not managed by this Cloudflare account. A direct CNAME
+from `tally.showerproject.org` to `tally.moorec104.workers.dev` resolves to
+Cloudflare, but it does not create a hostname binding or TLS certificate for
+`tally.showerproject.org`.
+
+Cloudflare for SaaS lets this account validate and serve the external customer
+hostname while leaving `showerproject.org` DNS outside Cloudflare. The provider
+zone is `connormo.org`, and the customer-facing hostname is routed to the
+provider target with a normal external CNAME.
+
+Rejected approaches:
+
+- Do not add a direct Worker custom-domain route for `tally.showerproject.org`;
+  that hostname is owned by the SaaS custom hostname resource.
+- Do not require `showerproject.org` nameservers to move to Cloudflare.
+- Do not use Cloudflare partial/CNAME setup for `showerproject.org`; that keeps
+  external authoritative DNS but requires Business or Enterprise.
+- Do not delegate `tally.showerproject.org` as a standalone Cloudflare child
+  zone; Cloudflare documents subdomain setup as Enterprise-only.
+
 ## Hostnames
 
 | Purpose | Hostname |
@@ -29,6 +51,31 @@ Browser
   -> wildcard Worker route in connormo.org zone
   -> tally Worker
 ```
+
+## Ownership Boundaries
+
+Terraform manages Cloudflare account and zone infrastructure:
+
+- `connormo.org` zone configuration.
+- `tally.connormo.org` originless fallback DNS record.
+- Wildcard Worker route for SaaS hostname traffic.
+- Cloudflare for SaaS fallback origin and custom hostname.
+- Cloudflare Access applications and shared allowed-user policy.
+- Outputs for the external DNS and validation records.
+
+Wrangler manages Worker runtime deployment:
+
+- Worker script and static assets.
+- D1 binding and migrations.
+- Worker secrets written during deploy.
+- Local development workflow.
+- The `workers.dev` fallback route, which stays enabled during rollout.
+
+External DNS remains manual unless a DNS provider integration is added later:
+
+- `connormo.org` nameserver delegation at its registrar or DNS authority.
+- `tally.showerproject.org` CNAME and any TXT validation records at the
+  `showerproject.org` DNS provider.
 
 ## One-Time Bootstrap
 
@@ -101,6 +148,20 @@ TTL: 300
     `custom_hostname_ownership_verification` or
     `custom_hostname_ssl_validation_records`, create those TXT records in
     Name.com for `showerproject.org`.
+
+## Hostname Validation
+
+The SaaS custom hostname becomes usable only after both validations pass:
+
+- Hostname validation: `tally.showerproject.org` must CNAME to
+  `tally.connormo.org`.
+- Certificate validation: add the TXT records from
+  `custom_hostname_ssl_validation_records` if Cloudflare returns pending ACME
+  validation records.
+
+Terraform outputs the current validation records after apply. Re-run the deploy
+or a local `terraform output` after DNS changes to confirm that Cloudflare marks
+the custom hostname and certificate active.
 
 ## Pull Request Checks
 
