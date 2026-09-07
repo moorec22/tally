@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 
+import { parseAccessAudiences } from "../../src/worker/auth"
 import worker from "../../src/worker/index"
 
 type ItemRecord = {
@@ -314,6 +315,33 @@ function patchJsonRequest(path: string, body: unknown) {
     method: "PATCH",
   })
 }
+
+describe("parseAccessAudiences", () => {
+  it("parses a single Cloudflare Access audience", () => {
+    expect(parseAccessAudiences("existing-workers-dev-aud")).toEqual([
+      "existing-workers-dev-aud",
+    ])
+  })
+
+  it("parses comma-separated Cloudflare Access audiences", () => {
+    expect(
+      parseAccessAudiences(
+        "existing-workers-dev-aud, tally-connormo-aud, tally-showerproject-aud",
+      ),
+    ).toEqual([
+      "existing-workers-dev-aud",
+      "tally-connormo-aud",
+      "tally-showerproject-aud",
+    ])
+  })
+
+  it("ignores blank audience entries created by extra commas", () => {
+    expect(parseAccessAudiences(" existing-workers-dev-aud, ,tally-aud, ")).toEqual([
+      "existing-workers-dev-aud",
+      "tally-aud",
+    ])
+  })
+})
 
 describe("worker API", () => {
   it("serves HTML assets with no-store caching so clients pick up new bundles", async () => {

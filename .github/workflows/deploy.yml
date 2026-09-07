@@ -15,6 +15,7 @@ permissions:
 jobs:
   deploy:
     name: Deploy production
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: production
@@ -40,7 +41,7 @@ jobs:
       - name: Build static site
         run: mise exec -- yarn build
 
-      - name: Verify Cloudflare credentials
+      - name: Verify deployment credentials
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
             echo "::error::Missing required GitHub secret: CLOUDFLARE_API_TOKEN"
@@ -50,9 +51,65 @@ jobs:
             echo "::error::Missing required GitHub secret: CLOUDFLARE_ACCOUNT_ID"
             exit 1
           fi
+          if [ -z "$AWS_ACCESS_KEY_ID" ]; then
+            echo "::error::Missing required GitHub secret: AWS_ACCESS_KEY_ID"
+            exit 1
+          fi
+          if [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
+            echo "::error::Missing required GitHub secret: AWS_SECRET_ACCESS_KEY"
+            exit 1
+          fi
+          if [ -z "$TF_VAR_ACCESS_ALLOWED_EMAILS" ]; then
+            echo "::error::Missing required GitHub secret: TF_VAR_ACCESS_ALLOWED_EMAILS"
+            exit 1
+          fi
+          if [ -z "$CF_ACCESS_TEAM_DOMAIN" ]; then
+            echo "::error::Missing required GitHub secret: CF_ACCESS_TEAM_DOMAIN"
+            exit 1
+          fi
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          CF_ACCESS_TEAM_DOMAIN: ${{ secrets.CF_ACCESS_TEAM_DOMAIN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_ACCESS_ALLOWED_EMAILS: ${{ secrets.TF_VAR_ACCESS_ALLOWED_EMAILS }}
+
+      - name: Initialize Terraform
+        run: |
+          mise exec -- terraform -chdir=infra/cloudflare init \
+            -backend-config='endpoints={s3="https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com"}'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Apply Terraform
+        run: mise exec -- terraform -chdir=infra/cloudflare apply -auto-approve
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_cloudflare_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TF_VAR_access_allowed_emails: ${{ secrets.TF_VAR_ACCESS_ALLOWED_EMAILS }}
+
+      - name: Update Cloudflare Access Worker secrets
+        run: |
+          terraform_auds="$(mise exec -- terraform -chdir=infra/cloudflare output -raw access_audiences_csv)"
+          if [ -n "$CF_ACCESS_AUD_EXTRA" ]; then
+            cf_access_aud="${CF_ACCESS_AUD_EXTRA},${terraform_auds}"
+          else
+            cf_access_aud="${terraform_auds}"
+          fi
+          printf '%s' "$cf_access_aud" | mise exec -- yarn wrangler secret put CF_ACCESS_AUD
+          printf '%s' "$CF_ACCESS_TEAM_DOMAIN" | mise exec -- yarn wrangler secret put CF_ACCESS_TEAM_DOMAIN
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          CF_ACCESS_AUD_EXTRA: ${{ secrets.CF_ACCESS_AUD_EXTRA }}
+          CF_ACCESS_TEAM_DOMAIN: ${{ secrets.CF_ACCESS_TEAM_DOMAIN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
       - name: Apply D1 migrations
         run: mise exec -- yarn wrangler d1 migrations apply tally --remote
