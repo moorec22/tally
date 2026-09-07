@@ -84,6 +84,11 @@ resource "cloudflare_zero_trust_access_application" "provider_hostname" {
   type             = "self_hosted"
   session_duration = var.access_session_duration
   policies         = local.access_policies
+
+  depends_on = [
+    cloudflare_dns_record.worker_fallback_origin,
+    cloudflare_workers_route.saas_hostnames,
+  ]
 }
 
 resource "cloudflare_zero_trust_access_application" "customer_hostname" {
@@ -93,4 +98,8 @@ resource "cloudflare_zero_trust_access_application" "customer_hostname" {
   type             = "self_hosted"
   session_duration = var.access_session_duration
   policies         = local.access_policies
+
+  depends_on = [
+    cloudflare_custom_hostname.tally_showerproject,
+  ]
 }
