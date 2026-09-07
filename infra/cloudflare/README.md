@@ -118,7 +118,10 @@ mise exec -- terraform -chdir=infra/cloudflare validate
 
 ## Production Deploy
 
-Merges to `main` run `.github/workflows/deploy.yml`.
+Merges to `main` run `.github/workflows/deploy.yml`. The production deploy job
+is guarded to run only when the workflow ref is `refs/heads/main`; manual
+dispatch is for rerunning production from `main`, not for deploying feature
+branches.
 
 The deploy job:
 
