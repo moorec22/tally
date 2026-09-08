@@ -178,6 +178,41 @@ describe("HomePage", () => {
     expect(screen.queryByText("Packing Tape")).not.toBeInTheDocument()
   })
 
+  it("separates inventory filters from inventory actions", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => items,
+      }),
+    )
+
+    renderWithTheme(<HomePage />)
+
+    await screen.findByText("Printer Paper")
+
+    const filters = screen.getByRole("search", {
+      name: "Inventory filters",
+    })
+    const actions = screen.getByRole("group", {
+      name: "Inventory actions",
+    })
+
+    expect(
+      within(filters).getByLabelText("Search inventory"),
+    ).toBeInTheDocument()
+    expect(
+      within(filters).getByRole("combobox", { name: "Category" }),
+    ).toBeInTheDocument()
+    expect(
+      within(actions).getByRole("button", { name: "Start Inventory" }),
+    ).toBeInTheDocument()
+    expect(
+      within(actions).getByRole("button", { name: "Add Item" }),
+    ).toBeInTheDocument()
+  })
+
   it("filters items by selected category", async () => {
     vi.stubGlobal(
       "fetch",
