@@ -45,6 +45,18 @@ export function unitSuffix(unit: string | null, quantity?: number | null) {
   return ` ${pluralizeUnit(trimmedUnit)}`
 }
 
+export function presentQuantity(
+  value: number | null,
+  unit: string | null,
+  emptyLabel = "Not set",
+) {
+  if (value === null) {
+    return emptyLabel
+  }
+
+  return `${value}${unitSuffix(unit, value)}`
+}
+
 export function presentTimestamp(value: string | null) {
   if (!value) {
     return "Not counted"

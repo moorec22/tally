@@ -23,9 +23,9 @@ import SectionLabel from "../SectionLabel"
 import type { InventoryItem, InventoryItemUpdate } from "../../types/inventory"
 import {
   presentNumber,
+  presentQuantity,
   presentText,
   presentTimestamp,
-  unitSuffix,
 } from "../../utils/inventoryPresentation"
 import ItemAttribute from "./ItemAttribute"
 
@@ -72,8 +72,7 @@ function integerOrNull(value: string) {
 
 export default function ItemDetails({ item, onSave }: ItemDetailsProps) {
   const itemName = presentText(item.name)
-  const currentQuantity =
-    item.value === null ? "--" : `${item.value}${unitSuffix(item.unit, item.value)}`
+  const currentQuantity = presentQuantity(item.value, item.unit, "--")
   const [isEditing, setIsEditing] = useState(false)
   const [formValues, setFormValues] = useState<ItemFormValues>(() =>
     formValuesFromItem(item),
