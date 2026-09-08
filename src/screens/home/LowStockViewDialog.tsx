@@ -74,6 +74,7 @@ function LowStockItemCard({
   lowStockItem: LowStockViewItem
 }) {
   const { item, shortage } = lowStockItem
+  const maximumShortage = item.high === null ? null : item.high - item.value
 
   return (
     <Box
@@ -95,6 +96,11 @@ function LowStockItemCard({
         <Typography color="error.main" sx={{ fontWeight: 700 }}>
           Need {shortage} to reach minimum
         </Typography>
+        {maximumShortage !== null ? (
+          <Typography color="text.secondary">
+            Need {maximumShortage} to reach maximum
+          </Typography>
+        ) : null}
       </Stack>
       <LowStockQuantitySummary item={item} />
     </Box>

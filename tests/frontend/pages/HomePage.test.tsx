@@ -527,9 +527,14 @@ describe("HomePage", () => {
     expect(within(dialog).getByText("Minimum: 5 reams")).toBeInTheDocument()
     expect(within(dialog).getByText("Maximum: 30 reams")).toBeInTheDocument()
     expect(within(dialog).getAllByText("Need 3 to reach minimum")).toHaveLength(2)
+    expect(within(dialog).getByText("Need 28 to reach maximum")).toBeInTheDocument()
     expect(within(dialog).getByText("Packing Tape")).toBeInTheDocument()
     expect(within(dialog).getByText("Maximum: Not set")).toBeInTheDocument()
+    expect(
+      within(dialog).queryByText("Need 3 to reach maximum"),
+    ).not.toBeInTheDocument()
     expect(within(dialog).getByText("Mystery Bin")).toBeInTheDocument()
+    expect(within(dialog).getByText("Need 8 to reach maximum")).toBeInTheDocument()
     expect(within(dialog).queryByText("Clipboards")).not.toBeInTheDocument()
   })
 

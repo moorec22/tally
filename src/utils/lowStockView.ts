@@ -1,7 +1,12 @@
 import type { InventoryItem } from "../types/inventory"
 
+export type CountedLowStockItem = InventoryItem & {
+  low: number
+  value: number
+}
+
 export type LowStockViewItem = {
-  item: InventoryItem
+  item: CountedLowStockItem
   shortage: number
 }
 
@@ -30,11 +35,6 @@ function compareNames(firstItem: InventoryItem, secondItem: InventoryItem) {
   }
 
   return firstItem.id - secondItem.id
-}
-
-type CountedLowStockItem = InventoryItem & {
-  low: number
-  value: number
 }
 
 export function isLowStockItem(item: InventoryItem): item is CountedLowStockItem {
