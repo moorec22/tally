@@ -6,11 +6,6 @@ export type ItemsLoadState =
   | { status: "loaded"; items: InventoryItem[] }
   | { status: "error" }
 
-export type CategoryFilterOption = {
-  label: string
-  value: string
-}
-
 export type InventorySortField = "category" | "last_counted"
 export type SortDirection = "asc" | "desc"
 

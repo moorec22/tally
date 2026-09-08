@@ -28,8 +28,8 @@ the files that use it.
 | `migrations/` | Cloudflare D1 schema migrations applied by Wrangler. |
 | `public/` | Static assets and fallback error pages copied into the exported site. |
 | `src/api/` | Frontend API helpers shared by screens and components. |
-| `src/components/` | Reusable React UI components. Domain-specific inventory components live under `src/components/items/`. |
-| `src/screens/` | Page-level React views responsible for data loading, orchestration, and composing smaller components. |
+| `src/components/` | Reusable React UI components. Domain-specific inventory components live under `src/components/inventory/` and `src/components/items/`. |
+| `src/screens/` | Page-level React views responsible for data loading, orchestration, and composing smaller components from `src/components/`. |
 | `src/types/` | Shared TypeScript shapes for frontend data contracts. These should stay aligned with Worker API responses. |
 | `src/utils/` | Small frontend utility functions that are not React components. |
 | `src/worker/` | Cloudflare Worker entrypoint, API routing, authentication checks, input validation, and Drizzle-backed D1 queries. |

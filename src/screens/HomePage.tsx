@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react"
 import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined"
 import Stack from "@mui/material/Stack"
 
+import InventoryHeader from "../components/inventory/InventoryHeader"
+import type { CategoryFilterOption } from "../components/inventory/InventoryFilters"
 import ItemCreateDialog from "../components/items/ItemCreateDialog"
 import type { InventoryDraftEntry } from "../components/items/InventoryItemRow"
 import PageShell from "../components/PageShell"
@@ -13,11 +15,9 @@ import type {
 } from "../types/inventory"
 import { apiJsonHeaders } from "../api/client"
 import CancelInventoryDialog from "./home/CancelInventoryDialog"
-import InventoryHeader from "./home/InventoryHeader"
 import InventoryListPanel from "./home/InventoryListPanel"
 import ReviewInventoryDialog from "./home/ReviewInventoryDialog"
 import type {
-  CategoryFilterOption,
   CountedInventoryItem,
   InventoryDraft,
   InventorySort,
